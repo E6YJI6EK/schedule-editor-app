@@ -1,0 +1,185 @@
+# Vue Schedule Editor for University Teachers
+
+## 📘 Цель
+Создать веб-приложение на **Vue 3**, которое позволяет **редактировать расписание преподавателей вуза** с разделением на **верхнюю и нижнюю недели (чётная / нечётная)**.  
+Интерфейс должен представлять собой **две таблицы подряд** с возможностью экспорта расписания в **Excel и PDF**.
+
+---
+
+## 🧩 Технологии и библиотеки
+- **Vue 3 (Composition API + `<script setup>`)**
+- **Pinia** — управление состоянием  
+- **Vue Router** — маршрутизация  
+- **Axios** — для будущих API-запросов (сейчас — моковые данные)  
+- **Shadcn-Vue** — UI-компоненты (модалки, кнопки, формы)  
+- **Vue Cal** — визуализация расписания в виде таблицы  
+- **xlsx + FileSaver.js** — экспорт в Excel  
+- **jsPDF + jspdf-autotable** — экспорт в PDF  
+- **TailwindCSS** — стилизация интерфейса  
+
+---
+
+## 📁 Структура проекта
+```
+src/
+ ├─ assets/
+ ├─ components/
+ │   ├─ ScheduleTable.vue
+ │   ├─ ScheduleCell.vue
+ │   ├─ WeekSwitcher.vue
+ │   ├─ Toolbar.vue
+ ├─ stores/
+ │   └─ scheduleStore.js
+ ├─ views/
+ │   └─ ScheduleView.vue
+ ├─ router/
+ │   └─ index.js
+ ├─ utils/
+ │   ├─ exportExcel.js
+ │   ├─ exportPDF.js
+ │   └─ mockData.js
+ ├─ App.vue
+ └─ main.js
+```
+
+---
+
+## #cursor: create `utils/mockData.js`
+```js
+export const mockSchedule = {
+  upperWeek: [
+    {
+      day: 'Понедельник',
+      timeslots: [
+        { time: '08:00–09:30', subject: 'Математика', teacher: 'Иванов И.И.', group: 'БИВТ-21', room: '101', building: '1' },
+        { time: '09:40–11:10', subject: 'Физика', teacher: 'Петров П.П.', group: 'БИВТ-21', room: '102', building: '1' },
+      ]
+    },
+    {
+      day: 'Вторник',
+      timeslots: [
+        { time: '08:00–09:30', subject: 'Информатика', teacher: 'Сидорова А.А.', group: 'БИВТ-22', room: '201', building: '2' },
+      ]
+    }
+  ],
+  lowerWeek: [
+    {
+      day: 'Понедельник',
+      timeslots: [
+        { time: '08:00–09:30', subject: 'История', teacher: 'Павлов К.К.', group: 'БИВТ-21', room: '301', building: '3' },
+      ]
+    }
+  ]
+};
+
+export const roomColors = {
+  '101': '#b3e5fc',
+  '102': '#c8e6c9',
+  '201': '#fff9c4',
+  '301': '#ffe0b2',
+  '401': '#f8bbd0'
+};
+```
+
+---
+
+## #cursor: create `stores/scheduleStore.js`
+```js
+import { defineStore } from 'pinia';
+import { mockSchedule } from '@/utils/mockData';
+
+export const useScheduleStore = defineStore('schedule', {
+  state: () => ({
+    schedule: mockSchedule,
+    currentWeek: 'upper', // 'upper' or 'lower'
+  }),
+  actions: {
+    switchWeek() {
+      this.currentWeek = this.currentWeek === 'upper' ? 'lower' : 'upper';
+    },
+    updateCell(week, day, time, newData) {
+      const targetWeek = this.schedule[week];
+      const dayData = targetWeek.find(d => d.day === day);
+      const cell = dayData.timeslots.find(t => t.time === time);
+      Object.assign(cell, newData);
+    },
+  },
+});
+```
+
+---
+
+## #cursor: create `views/ScheduleView.vue`
+**ToDo:**
+- Импортировать `Toolbar.vue`, `WeekSwitcher.vue`, `ScheduleTable.vue`.
+- Получить данные из `useScheduleStore`.
+- Отобразить две таблицы подряд: верхнюю и нижнюю неделю.
+- Между таблицами добавить заголовок.
+- Передать пропсы в `ScheduleTable`.
+- Оформить контейнер с отступами.
+
+---
+
+## #cursor: create `components/ScheduleTable.vue`
+**ToDo:**
+- Принять пропсы: `weekType`, `data`, `colors`.
+- Отобразить дни недели по горизонтали.
+- Отобразить временные интервалы по вертикали.
+- Каждая ячейка — `ScheduleCell.vue`.
+- Применить стили: `shadow-md`, `rounded-2xl`, `border`, `border-gray-300`.
+
+---
+
+## #cursor: create `components/ScheduleCell.vue`
+**ToDo:**
+- Принять пропсы: `cellData`, `day`, `time`, `weekType`, `color`.
+- Отобразить: предмет, преподаватель, группа, аудитория, корпус.
+- При клике — модалка shadcn.
+- Поля: `subject`, `teacher`, `group`, `room`, `building`.
+- При сохранении вызвать `updateCell()`.
+- Применить фон `:style="{ backgroundColor: color }"`.
+
+---
+
+## #cursor: create `components/WeekSwitcher.vue`
+**ToDo:**
+- Получить `currentWeek` из `scheduleStore`.
+- Клик вызывает `switchWeek()`.
+- Использовать shadcn Switch.
+- Показать `Верхняя` / `Нижняя` неделя.
+
+---
+
+## #cursor: create `components/Toolbar.vue`
+**ToDo:**
+- Кнопки:
+  - `Добавить пару`
+  - `Экспортировать в Excel`
+  - `Экспортировать в PDF`
+  - `Переключить неделю`
+- Клики вызывают соответствующие функции (`exportToExcel`, `exportToPDF`, `switchWeek`).
+- Использовать `Button` из shadcn и иконки из lucide-vue.
+
+---
+
+## #cursor: create `utils/exportExcel.js`
+(использовать библиотеку `xlsx`)
+
+---
+
+## #cursor: create `utils/exportPDF.js`
+(использовать `jsPDF` и `jspdf-autotable`)
+
+---
+
+## 🧭 Роутинг
+`/` → `ScheduleView.vue`
+
+---
+
+## ⚙️ Результат
+- Две таблицы: верхняя/нижняя неделя.
+- Редактирование ячеек.
+- Сохранение в Pinia.
+- Экспорт в Excel и PDF.
+- Красивый интерфейс (shadcn + Tailwind).
