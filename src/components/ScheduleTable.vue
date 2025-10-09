@@ -1,11 +1,5 @@
 <template>
   <div class="bg-white rounded-2xl shadow-md border border-gray-300 overflow-hidden">
-    <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
-      <h2 class="text-lg font-semibold text-gray-800">
-        {{ weekType === 'upperWeek' ? 'Верхняя неделя' : 'Нижняя неделя' }}
-      </h2>
-    </div>
-    
     <div class="overflow-x-auto">
       <table class="w-full">
         <thead>
