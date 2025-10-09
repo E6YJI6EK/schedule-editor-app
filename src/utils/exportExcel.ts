@@ -1,22 +1,23 @@
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
+import type { Schedule, WeekType } from '@/types/schedule';
 
-export function exportToExcel(scheduleData, weekType) {
+export function exportToExcel(scheduleData: Schedule): void {
   // Create a new workbook
   const workbook = XLSX.utils.book_new();
   
   const groups = scheduleData.groups || ['Группа 1', 'Группа 2', 'Группа 3'];
   
   // Process each week
-  ['upperWeek', 'lowerWeek'].forEach(week => {
+  (['upperWeek', 'lowerWeek'] as WeekType[]).forEach(week => {
     const weekData = scheduleData[week];
     const weekName = week === 'upperWeek' ? 'Верхняя неделя' : 'Нижняя неделя';
     
     // Prepare data for Excel
-    const excelData = [];
+    const excelData: (string | number)[][] = [];
     
     // Add header row 1 (days)
-    const headerRow1 = ['Время'];
+    const headerRow1: string[] = ['Время'];
     ['Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота'].forEach(day => {
       headerRow1.push(day);
       for (let i = 1; i < groups.length; i++) {
@@ -25,7 +26,7 @@ export function exportToExcel(scheduleData, weekType) {
     });
     
     // Add header row 2 (groups)
-    const headerRow2 = [''];
+    const headerRow2: string[] = [''];
     ['Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота'].forEach(() => {
       groups.forEach(group => {
         headerRow2.push(group);
@@ -36,7 +37,7 @@ export function exportToExcel(scheduleData, weekType) {
     excelData.push(headerRow2);
     
     // Get all unique time slots
-    const allTimes = [];
+    const allTimes: string[] = [];
     weekData.forEach(day => {
       day.timeslots.forEach(slot => {
         if (!allTimes.includes(slot.time)) {
@@ -50,7 +51,7 @@ export function exportToExcel(scheduleData, weekType) {
     
     // Create rows for each time slot
     allTimes.forEach(time => {
-      const row = [time];
+      const row: string[] = [time];
       
       // Add data for each day and group
       ['Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота'].forEach(dayName => {
@@ -75,7 +76,7 @@ export function exportToExcel(scheduleData, weekType) {
     const worksheet = XLSX.utils.aoa_to_sheet(excelData);
     
     // Set column widths
-    const columnWidths = [{ wch: 15 }]; // Time column
+    const columnWidths: XLSX.ColInfo[] = [{ wch: 15 }]; // Time column
     for (let i = 0; i < 6; i++) { // 6 days
       for (let j = 0; j < groups.length; j++) { // groups per day
         columnWidths.push({ wch: 20 });
@@ -95,3 +96,4 @@ export function exportToExcel(scheduleData, weekType) {
   const fileName = `Расписание_${new Date().toLocaleDateString('ru-RU').replace(/\./g, '_')}.xlsx`;
   saveAs(data, fileName);
 }
+

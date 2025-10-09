@@ -1,4 +1,6 @@
-export const mockSchedule = {
+import type { Schedule, RoomColors } from '@/types/schedule';
+
+export const mockSchedule: Schedule = {
   groups: ['МПИ-101', 'МПИ-102', 'МПИ-103'], // Список групп/направлений
   upperWeek: [
     {
@@ -642,7 +644,7 @@ export const mockSchedule = {
   ]
 };
 
-export const roomColors = {
+export const roomColors: RoomColors = {
   '101': '#b3e5fc',
   '102': '#c8e6c9',
   '201': '#fff9c4',
@@ -650,3 +652,4 @@ export const roomColors = {
   '401': '#f8bbd0',
   'Спортзал': '#e1bee7'
 };
+

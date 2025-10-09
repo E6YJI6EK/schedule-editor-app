@@ -65,10 +65,11 @@
   </div>
 </template>
 
-<script setup>
-import { computed } from 'vue';
+<script setup lang="ts">
+import { computed, type PropType } from 'vue';
 import ScheduleCell from './ScheduleCell.vue';
 import { mockSchedule } from '@/utils/mockData';
+import type { DaySchedule, RoomColors } from '@/types/schedule';
 
 const props = defineProps({
   weekType: {
@@ -76,11 +77,11 @@ const props = defineProps({
     required: true
   },
   data: {
-    type: Array,
+    type: Array as PropType<DaySchedule[]>,
     required: true
   },
   colors: {
-    type: Object,
+    type: Object as PropType<RoomColors>,
     required: true
   }
 });
@@ -88,8 +89,8 @@ const props = defineProps({
 const days = ['Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота'];
 const groups = mockSchedule.groups;
 
-const times = computed(() => {
-  const allTimes = [];
+const times = computed<string[]>(() => {
+  const allTimes: string[] = [];
   props.data.forEach(day => {
     day.timeslots.forEach(slot => {
       if (!allTimes.includes(slot.time)) {
@@ -100,13 +101,13 @@ const times = computed(() => {
   return allTimes.sort();
 });
 
-const getCellData = (day, time, groupIndex) => {
+const getCellData = (day: string, time: string, groupIndex: number) => {
   const dayData = props.data.find(d => d.day === day);
   const timeSlot = dayData?.timeslots.find(t => t.time === time);
   return timeSlot?.groups?.[groupIndex] || { subject: '', teacher: '', room: '', building: '' };
 };
 
-const getCellColor = (day, time, groupIndex) => {
+const getCellColor = (day: string, time: string, groupIndex: number): string => {
   const cellData = getCellData(day, time, groupIndex);
   return cellData.room ? (props.colors[cellData.room] || '#ffffff') : '#ffffff';
 };

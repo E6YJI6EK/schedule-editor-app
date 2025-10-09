@@ -27,9 +27,9 @@
 </template>
 
 <script setup>
-import { Plus, FileSpreadsheet, FileText } from 'lucide-vue-next';
+import { FileSpreadsheet, FileText } from 'lucide-vue-next';
 import WeekSwitcher from './WeekSwitcher.vue';
-import { useScheduleStore } from '@/stores/scheduleStore.ts';
+import { useScheduleStore } from '@/stores/scheduleStore';
 import { exportToExcel as exportExcel } from '@/utils/exportExcel';
 import { exportToPDF as exportPDF } from '@/utils/exportPDF';
 

@@ -1,7 +1,7 @@
-import { createRouter, createWebHistory } from 'vue-router';
+import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router';
 import ScheduleView from '@/views/ScheduleView.vue';
 
-const routes = [
+const routes: RouteRecordRaw[] = [
   {
     path: '/',
     name: 'Schedule',
@@ -15,3 +15,4 @@ const router = createRouter({
 });
 
 export default router;
+
