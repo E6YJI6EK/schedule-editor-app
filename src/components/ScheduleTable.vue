@@ -68,7 +68,7 @@
 <script setup lang="ts">
 import { computed, type PropType } from 'vue';
 import ScheduleCell from './ScheduleCell.vue';
-import { mockSchedule } from '@/utils/mockData';
+import { mockSchedule } from '@/utils/mockData.ts';
 import type { DaySchedule, RoomColors } from '@/types/schedule';
 
 const props = defineProps({
