@@ -1,15 +1,28 @@
 <template>
   <div
+    :draggable="!!cellData.subject"
+    @dragstart="handleDragStart"
+    @dragend="handleDragEnd"
+    @dragover.prevent="handleDragOver"
+    @dragleave="handleDragLeave"
+    @drop.prevent="handleDrop"
     @click="openEditDialog"
-    class="h-20 p-2 border border-gray-300 cursor-pointer hover:shadow-md transition-shadow rounded-lg"
-    :style="{ backgroundColor: color }"
+    class="h-20 p-2 border border-gray-300 rounded-lg transition-all"
+    :class="{
+      'cursor-move hover:shadow-md': cellData.subject,
+      'cursor-pointer hover:shadow-md': !cellData.subject,
+      'bg-blue-100 border-blue-400 border-2': isDragOver,
+      'opacity-50': isDragging
+    }"
+    :style="{ backgroundColor: isDragOver ? '#dbeafe' : color }"
   >
-    <div v-if="cellData.subject" class="text-xs">
+    <div v-if="cellData.subject" class="text-xs pointer-events-none relative">
       <div class="font-semibold text-gray-800 truncate">{{ cellData.subject }}</div>
       <div class="text-gray-600 truncate">{{ cellData.teacher }}</div>
       <div class="text-gray-600 truncate">{{ cellData.room }} ({{ cellData.building }})</div>
+      <div class="absolute top-0 right-0 text-gray-400 text-xs opacity-50">⋮⋮</div>
     </div>
-    <div v-else class="flex items-center justify-center h-full text-gray-400 text-sm">
+    <div v-else class="flex items-center justify-center h-full text-gray-400 text-sm pointer-events-none">
       Пусто
     </div>
   </div>
@@ -88,7 +101,7 @@
 
 <script setup>
 import { ref, reactive } from 'vue';
-import { useScheduleStore } from '@/stores/scheduleStore';
+import { useScheduleStore } from '@/stores/scheduleStore.ts';
 
 const props = defineProps({
   cellData: {
@@ -123,6 +136,9 @@ const props = defineProps({
 
 const scheduleStore = useScheduleStore();
 const showEditDialog = ref(false);
+const isDragging = ref(false);
+const isDragOver = ref(false);
+const isBeingDragged = ref(false);
 
 const editData = reactive({
   subject: '',
@@ -132,6 +148,12 @@ const editData = reactive({
 });
 
 const openEditDialog = () => {
+  // Don't open dialog if we just finished dragging
+  if (isBeingDragged.value) {
+    isBeingDragged.value = false;
+    return;
+  }
+  
   // Initialize edit data with current cell data
   Object.assign(editData, props.cellData);
   showEditDialog.value = true;
@@ -144,5 +166,75 @@ const closeEditDialog = () => {
 const saveChanges = () => {
   scheduleStore.updateCell(props.weekType, props.day, props.time, props.groupIndex, { ...editData });
   closeEditDialog();
+};
+
+// Drag and Drop handlers
+const handleDragStart = (event) => {
+  if (!props.cellData.subject) return;
+  
+  isDragging.value = true;
+  isBeingDragged.value = true;
+  
+  const dragData = {
+    weekType: props.weekType,
+    day: props.day,
+    time: props.time,
+    groupIndex: props.groupIndex,
+    cellData: { ...props.cellData }
+  };
+  
+  event.dataTransfer.effectAllowed = 'move';
+  event.dataTransfer.setData('application/json', JSON.stringify(dragData));
+};
+
+const handleDragOver = (event) => {
+  event.preventDefault();
+  isDragOver.value = true;
+  event.dataTransfer.dropEffect = 'move';
+};
+
+const handleDragEnd = () => {
+  isDragging.value = false;
+  // Reset isBeingDragged after a short delay
+  setTimeout(() => {
+    isBeingDragged.value = false;
+  }, 100);
+};
+
+const handleDragLeave = () => {
+  isDragOver.value = false;
+};
+
+const handleDrop = (event) => {
+  event.preventDefault();
+  isDragOver.value = false;
+  isDragging.value = false;
+  
+  try {
+    const dragData = JSON.parse(event.dataTransfer.getData('application/json'));
+    
+    // Don't drop on the same cell
+    if (
+      dragData.weekType === props.weekType &&
+      dragData.day === props.day &&
+      dragData.time === props.time &&
+      dragData.groupIndex === props.groupIndex
+    ) {
+      return;
+    }
+    // Move the class to the new cell
+    scheduleStore.moveCell(
+      dragData.weekType,
+      dragData.day,
+      dragData.time,
+      dragData.groupIndex,
+      props.weekType,
+      props.day,
+      props.time,
+      props.groupIndex
+    );
+  } catch (error) {
+    console.error('Error during drop:', error);
+  }
 };
 </script>

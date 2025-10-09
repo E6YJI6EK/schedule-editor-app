@@ -25,7 +25,7 @@
 </template>
 
 <script setup>
-import { useScheduleStore } from "@/stores/scheduleStore";
+import { useScheduleStore } from "@/stores/scheduleStore.ts";
 import { roomColors } from "@/utils/mockData";
 import Toolbar from "@/components/Toolbar.vue";
 import ScheduleTable from "@/components/ScheduleTable.vue";

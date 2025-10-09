@@ -26,6 +26,28 @@ export const useScheduleStore = defineStore('schedule', {
         Object.assign(timeSlot.groups[groupIndex], classData);
       }
     },
+    moveCell(fromWeek, fromDay, fromTime, fromGroupIndex, toWeek, toDay, toTime, toGroupIndex) {
+      // Get source cell data
+      const fromWeekData = this.schedule[fromWeek];
+      const fromDayData = fromWeekData.find(d => d.day === fromDay);
+      const fromTimeSlot = fromDayData.timeslots.find(t => t.time === fromTime);
+      const fromCell = fromTimeSlot?.groups?.[fromGroupIndex];
+      
+      if (!fromCell) return;
+      
+      // Get target cell data
+      const toWeekData = this.schedule[toWeek];
+      const toDayData = toWeekData.find(d => d.day === toDay);
+      const toTimeSlot = toDayData.timeslots.find(t => t.time === toTime);
+      const toCell = toTimeSlot?.groups?.[toGroupIndex];
+      
+      if (!toCell) return;
+      
+      // Swap cells
+      const temp = { ...fromCell };
+      Object.assign(fromCell, toCell);
+      Object.assign(toCell, temp);
+    },
     getCurrentWeekData() {
       return this.schedule[this.currentWeek];
     },

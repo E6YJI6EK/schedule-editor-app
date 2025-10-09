@@ -23,7 +23,7 @@
 </template>
 
 <script setup>
-import { useScheduleStore } from '@/stores/scheduleStore';
+import { useScheduleStore } from '@/stores/scheduleStore.ts';
 import { storeToRefs } from 'pinia';
 
 const scheduleStore = useScheduleStore();
