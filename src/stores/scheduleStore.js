@@ -10,18 +10,20 @@ export const useScheduleStore = defineStore('schedule', {
     switchWeek() {
       this.currentWeek = this.currentWeek === 'upper' ? 'lower' : 'upper';
     },
-    updateCell(week, day, time, newData) {
+    updateCell(week, day, time, groupIndex, newData) {
       const targetWeek = this.schedule[week];
       const dayData = targetWeek.find(d => d.day === day);
-      const cell = dayData.timeslots.find(t => t.time === time);
-      Object.assign(cell, newData);
+      const timeSlot = dayData.timeslots.find(t => t.time === time);
+      if (timeSlot && timeSlot.groups && timeSlot.groups[groupIndex]) {
+        Object.assign(timeSlot.groups[groupIndex], newData);
+      }
     },
-    addNewClass(week, day, time, classData) {
+    addNewClass(week, day, time, groupIndex, classData) {
       const targetWeek = this.schedule[week];
       const dayData = targetWeek.find(d => d.day === day);
-      const existingCell = dayData.timeslots.find(t => t.time === time);
-      if (existingCell) {
-        Object.assign(existingCell, classData);
+      const timeSlot = dayData.timeslots.find(t => t.time === time);
+      if (timeSlot && timeSlot.groups && timeSlot.groups[groupIndex]) {
+        Object.assign(timeSlot.groups[groupIndex], classData);
       }
     },
     getCurrentWeekData() {

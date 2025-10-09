@@ -4,6 +4,8 @@ import 'jspdf-autotable';
 export function exportToPDF(scheduleData, weekType) {
   const doc = new jsPDF('landscape', 'mm', 'a4');
   
+  const groups = scheduleData.groups || ['Группа 1', 'Группа 2', 'Группа 3'];
+  
   // Process each week
   ['upperWeek', 'lowerWeek'].forEach((week, weekIndex) => {
     if (weekIndex > 0) {
@@ -38,30 +40,57 @@ export function exportToPDF(scheduleData, weekType) {
     allTimes.forEach(time => {
       const row = [time];
       
-      // Add data for each day
+      // Add data for each day and group
       ['Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота'].forEach(dayName => {
         const dayData = weekData.find(d => d.day === dayName);
         const timeSlot = dayData?.timeslots.find(t => t.time === time);
         
-        if (timeSlot && timeSlot.subject) {
-          const cellData = `${timeSlot.subject}\n${timeSlot.teacher}\n${timeSlot.group}\n${timeSlot.room} (${timeSlot.building})`;
-          row.push(cellData);
-        } else {
-          row.push('');
-        }
+        groups.forEach((_, groupIdx) => {
+          const groupData = timeSlot?.groups?.[groupIdx];
+          if (groupData && groupData.subject) {
+            const cellData = `${groupData.subject}\n${groupData.teacher}\n${groupData.room} (${groupData.building})`;
+            row.push(cellData);
+          } else {
+            row.push('');
+          }
+        });
       });
       
       tableData.push(row);
     });
     
+    // Create header with two rows
+    const headerRow1 = [
+      { content: 'Время', rowSpan: 2 }
+    ];
+    ['Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота'].forEach(day => {
+      headerRow1.push({ content: day, colSpan: groups.length });
+    });
+    
+    const headerRow2 = [];
+    ['Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота'].forEach(() => {
+      groups.forEach(group => {
+        headerRow2.push(group);
+      });
+    });
+    
+    // Calculate column widths
+    const timeColWidth = 15;
+    const groupColWidth = (297 - 40 - timeColWidth) / (6 * groups.length); // A4 landscape width minus margins
+    
+    const columnStyles = { 0: { halign: 'center', cellWidth: timeColWidth } };
+    for (let i = 1; i <= 6 * groups.length; i++) {
+      columnStyles[i] = { cellWidth: groupColWidth };
+    }
+    
     // Create table
     doc.autoTable({
-      head: [['Время', 'Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота']],
+      head: [headerRow1, headerRow2],
       body: tableData,
       startY: 30,
       styles: {
-        fontSize: 8,
-        cellPadding: 3,
+        fontSize: 6,
+        cellPadding: 2,
         overflow: 'linebreak',
         halign: 'center',
         valign: 'middle'
@@ -69,18 +98,11 @@ export function exportToPDF(scheduleData, weekType) {
       headStyles: {
         fillColor: [66, 139, 202],
         textColor: 255,
-        fontStyle: 'bold'
+        fontStyle: 'bold',
+        fontSize: 7
       },
-      columnStyles: {
-        0: { halign: 'center', cellWidth: 20 },
-        1: { cellWidth: 30 },
-        2: { cellWidth: 30 },
-        3: { cellWidth: 30 },
-        4: { cellWidth: 30 },
-        5: { cellWidth: 30 },
-        6: { cellWidth: 30 }
-      },
-      margin: { left: 20, right: 20 }
+      columnStyles: columnStyles,
+      margin: { left: 10, right: 10 }
     });
   });
   

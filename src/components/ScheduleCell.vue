@@ -7,7 +7,6 @@
     <div v-if="cellData.subject" class="text-xs">
       <div class="font-semibold text-gray-800 truncate">{{ cellData.subject }}</div>
       <div class="text-gray-600 truncate">{{ cellData.teacher }}</div>
-      <div class="text-gray-600 truncate">{{ cellData.group }}</div>
       <div class="text-gray-600 truncate">{{ cellData.room }} ({{ cellData.building }})</div>
     </div>
     <div v-else class="flex items-center justify-center h-full text-gray-400 text-sm">
@@ -25,7 +24,7 @@
       class="bg-white rounded-lg p-6 w-96 max-w-full mx-4"
       @click.stop
     >
-      <h3 class="text-lg font-semibold mb-4">Редактировать пару</h3>
+      <h3 class="text-lg font-semibold mb-4">Редактировать пару - {{ group }}</h3>
       
       <div class="space-y-4">
         <div>
@@ -45,16 +44,6 @@
             type="text"
             class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             placeholder="Введите ФИО преподавателя"
-          />
-        </div>
-        
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Группа</label>
-          <input
-            v-model="editData.group"
-            type="text"
-            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="Введите номер группы"
           />
         </div>
         
@@ -114,6 +103,14 @@ const props = defineProps({
     type: String,
     required: true
   },
+  group: {
+    type: String,
+    required: true
+  },
+  groupIndex: {
+    type: Number,
+    required: true
+  },
   weekType: {
     type: String,
     required: true
@@ -130,7 +127,6 @@ const showEditDialog = ref(false);
 const editData = reactive({
   subject: '',
   teacher: '',
-  group: '',
   room: '',
   building: ''
 });
@@ -146,7 +142,7 @@ const closeEditDialog = () => {
 };
 
 const saveChanges = () => {
-  scheduleStore.updateCell(props.weekType, props.day, props.time, { ...editData });
+  scheduleStore.updateCell(props.weekType, props.day, props.time, props.groupIndex, { ...editData });
   closeEditDialog();
 };
 </script>

@@ -5,6 +5,8 @@ export function exportToExcel(scheduleData, weekType) {
   // Create a new workbook
   const workbook = XLSX.utils.book_new();
   
+  const groups = scheduleData.groups || ['Группа 1', 'Группа 2', 'Группа 3'];
+  
   // Process each week
   ['upperWeek', 'lowerWeek'].forEach(week => {
     const weekData = scheduleData[week];
@@ -13,9 +15,25 @@ export function exportToExcel(scheduleData, weekType) {
     // Prepare data for Excel
     const excelData = [];
     
-    // Add header row
-    const headerRow = ['Время', 'Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота'];
-    excelData.push(headerRow);
+    // Add header row 1 (days)
+    const headerRow1 = ['Время'];
+    ['Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота'].forEach(day => {
+      headerRow1.push(day);
+      for (let i = 1; i < groups.length; i++) {
+        headerRow1.push(''); // Empty cells for merge
+      }
+    });
+    
+    // Add header row 2 (groups)
+    const headerRow2 = [''];
+    ['Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота'].forEach(() => {
+      groups.forEach(group => {
+        headerRow2.push(group);
+      });
+    });
+    
+    excelData.push(headerRow1);
+    excelData.push(headerRow2);
     
     // Get all unique time slots
     const allTimes = [];
@@ -34,17 +52,20 @@ export function exportToExcel(scheduleData, weekType) {
     allTimes.forEach(time => {
       const row = [time];
       
-      // Add data for each day
+      // Add data for each day and group
       ['Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота'].forEach(dayName => {
         const dayData = weekData.find(d => d.day === dayName);
         const timeSlot = dayData?.timeslots.find(t => t.time === time);
         
-        if (timeSlot && timeSlot.subject) {
-          const cellData = `${timeSlot.subject}\n${timeSlot.teacher}\n${timeSlot.group}\n${timeSlot.room} (${timeSlot.building})`;
-          row.push(cellData);
-        } else {
-          row.push('');
-        }
+        groups.forEach((_, groupIdx) => {
+          const groupData = timeSlot?.groups?.[groupIdx];
+          if (groupData && groupData.subject) {
+            const cellData = `${groupData.subject}\n${groupData.teacher}\n${groupData.room} (${groupData.building})`;
+            row.push(cellData);
+          } else {
+            row.push('');
+          }
+        });
       });
       
       excelData.push(row);
@@ -54,15 +75,12 @@ export function exportToExcel(scheduleData, weekType) {
     const worksheet = XLSX.utils.aoa_to_sheet(excelData);
     
     // Set column widths
-    const columnWidths = [
-      { wch: 15 }, // Time column
-      { wch: 25 }, // Monday
-      { wch: 25 }, // Tuesday
-      { wch: 25 }, // Wednesday
-      { wch: 25 }, // Thursday
-      { wch: 25 }, // Friday
-      { wch: 25 }  // Saturday
-    ];
+    const columnWidths = [{ wch: 15 }]; // Time column
+    for (let i = 0; i < 6; i++) { // 6 days
+      for (let j = 0; j < groups.length; j++) { // groups per day
+        columnWidths.push({ wch: 20 });
+      }
+    }
     worksheet['!cols'] = columnWidths;
     
     // Add worksheet to workbook
