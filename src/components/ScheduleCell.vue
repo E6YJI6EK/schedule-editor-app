@@ -40,45 +40,10 @@
       <h3 class="text-lg font-semibold mb-4">Редактировать пару - {{ group }}</h3>
       
       <div class="space-y-4">
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Предмет</label>
-          <input
-            v-model="editData.subject"
-            type="text"
-            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="Введите название предмета"
-          />
-        </div>
-        
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Преподаватель</label>
-          <input
-            v-model="editData.teacher"
-            type="text"
-            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="Введите ФИО преподавателя"
-          />
-        </div>
-        
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Аудитория</label>
-          <input
-            v-model="editData.room"
-            type="text"
-            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="Введите номер аудитории"
-          />
-        </div>
-        
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Корпус</label>
-          <input
-            v-model="editData.building"
-            type="text"
-            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="Введите номер корпуса"
-          />
-        </div>
+        <SubjectSelect v-model="editData.subject" />
+        <TeacherSelect v-model="editData.teacher" />
+        <RoomSelect v-model="editData.room" />
+        <BuildingSelect v-model="editData.building" />
       </div>
       
       <div class="flex justify-end space-x-3 mt-6">
@@ -99,39 +64,28 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, reactive } from 'vue';
 import { useScheduleStore } from '@/stores/scheduleStore.ts';
+import SubjectSelect from '@/components/form-fields/SubjectSelect.vue';
+import TeacherSelect from '@/components/form-fields/TeacherSelect.vue';
+import RoomSelect from '@/components/form-fields/RoomSelect.vue';
+import BuildingSelect from '@/components/form-fields/BuildingSelect.vue';
 
-const props = defineProps({
-  cellData: {
-    type: Object,
-    required: true
-  },
-  day: {
-    type: String,
-    required: true
-  },
-  time: {
-    type: String,
-    required: true
-  },
-  group: {
-    type: String,
-    required: true
-  },
-  groupIndex: {
-    type: Number,
-    required: true
-  },
-  weekType: {
-    type: String,
-    required: true
-  },
-  color: {
-    type: String,
-    default: '#ffffff'
-  }
+import type { ClassData, WeekType } from '@/types/schedule';
+
+interface Props {
+  cellData: ClassData;
+  day: string;
+  time: string;
+  group: string;
+  groupIndex: number;
+  weekType: WeekType;
+  color?: string;
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  color: '#ffffff'
 });
 
 const scheduleStore = useScheduleStore();
@@ -169,8 +123,8 @@ const saveChanges = () => {
 };
 
 // Drag and Drop handlers
-const handleDragStart = (event) => {
-  if (!props.cellData.subject) return;
+const handleDragStart = (event: DragEvent) => {
+  if (!props.cellData.subject || !event.dataTransfer) return;
   
   isDragging.value = true;
   isBeingDragged.value = true;
@@ -187,7 +141,8 @@ const handleDragStart = (event) => {
   event.dataTransfer.setData('application/json', JSON.stringify(dragData));
 };
 
-const handleDragOver = (event) => {
+const handleDragOver = (event: DragEvent) => {
+  if (!event.dataTransfer) return;
   event.preventDefault();
   isDragOver.value = true;
   event.dataTransfer.dropEffect = 'move';
@@ -205,7 +160,8 @@ const handleDragLeave = () => {
   isDragOver.value = false;
 };
 
-const handleDrop = (event) => {
+const handleDrop = (event: DragEvent) => {
+  if (!event.dataTransfer) return;
   event.preventDefault();
   isDragOver.value = false;
   isDragging.value = false;

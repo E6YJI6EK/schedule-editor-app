@@ -66,12 +66,21 @@
 </template>
 
 <script setup lang="ts">
-import { computed, type PropType } from 'vue';
+import { computed } from 'vue';
 import ScheduleCell from './ScheduleCell.vue';
 import { mockSchedule } from '@/utils/mockData.ts';
-import type { DaySchedule, RoomColors } from '@/types/schedule';
+import type { DaySchedule, RoomColors, WeekType } from '@/types/schedule';
 
-const props = defineProps({
+interface Props {
+  weekType: WeekType;
+  data: DaySchedule[];
+  colors: RoomColors;
+}
+
+const props = defineProps<Props>();
+
+// Старая версия для совместимости:
+/*const props = defineProps({
   weekType: {
     type: String,
     required: true
@@ -84,7 +93,7 @@ const props = defineProps({
     type: Object as PropType<RoomColors>,
     required: true
   }
-});
+});*/
 
 const days = ['Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота'];
 const groups = mockSchedule.groups;
