@@ -14,12 +14,6 @@
         "
         :colors="roomColors"
       />
-
-      <!-- <ScheduleTable
-        week-type="lowerWeek"
-        :data="scheduleStore.getWeekData('lowerWeek')"
-        :colors="roomColors"
-      /> -->
     </div>
   </div>
 </template>
