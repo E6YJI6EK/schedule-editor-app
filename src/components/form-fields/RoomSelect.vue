@@ -1,54 +1,70 @@
+<script setup lang="ts">
+import {
+  Combobox,
+  ComboboxAnchor,
+  ComboboxEmpty,
+  ComboboxGroup,
+  ComboboxInput,
+  ComboboxItem,
+  ComboboxList,
+  ComboboxTrigger,
+} from "@/components/ui/combobox";
+import { rooms } from "@/data/selectOptions";
+import { searchClassRooms } from "@/shared/api/classRooms";
+import type { ClassRoom } from "@/shared/api/types";
+import { computed, ref, watch } from "vue";
+
+const props = defineProps<{
+  buildingId?: number;
+  modelValue: ClassRoom | null;
+}>();
+
+const emit = defineEmits<{
+  "update:modelValue": [value: ClassRoom | null];
+}>();
+
+const options = ref<ClassRoom[]>();
+
+watch(
+  () => props.buildingId,
+  async (buildingId) => {
+    if (buildingId) {
+      options.value = (
+        await searchClassRooms({ building_id: buildingId })
+      ).data;
+    }
+  }
+);
+
+const selectedValue = computed({
+  get: () => props.modelValue,
+  set: (value) => emit("update:modelValue", value),
+});
+</script>
+
 <template>
-  <div class="space-y-2">
+  <div v-if="buildingId" class="space-y-2">
     <label class="block text-sm font-medium text-gray-700">Аудитория</label>
     <Combobox v-model="selectedValue">
       <ComboboxAnchor class="w-full">
-        <ComboboxInput 
-          placeholder="Выберите или введите аудиторию" 
-          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
-        <ComboboxTrigger />
+        <ComboboxTrigger class="w-full">
+          <ComboboxInput
+            :display-value="(val) => val.number"
+            placeholder="Выберите или введите аудиторию"
+            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        </ComboboxTrigger>
       </ComboboxAnchor>
-      <ComboboxList class="w-[336px] max-h-[200px] overflow-auto">
+      <ComboboxList
+        class="translate-y-[20px] w-[336px] max-h-[200px] overflow-auto"
+      >
         <ComboboxEmpty>Не найдено</ComboboxEmpty>
         <ComboboxGroup>
-          <ComboboxItem 
-            v-for="room in rooms" 
-            :key="room" 
-            :value="room"
-          >
-            {{ room }}
+          <ComboboxItem v-for="room in options" :key="room.id" :value="room">
+            {{ room.number }}
           </ComboboxItem>
         </ComboboxGroup>
       </ComboboxList>
     </Combobox>
   </div>
 </template>
-
-<script setup lang="ts">
-import { computed } from 'vue';
-import {
-  Combobox,
-  ComboboxAnchor,
-  ComboboxInput,
-  ComboboxTrigger,
-  ComboboxList,
-  ComboboxEmpty,
-  ComboboxGroup,
-  ComboboxItem,
-} from '@/components/ui/combobox';
-import { rooms } from '@/data/selectOptions';
-
-const props = defineProps<{
-  modelValue: string;
-}>();
-
-const emit = defineEmits<{
-  'update:modelValue': [value: string];
-}>();
-
-const selectedValue = computed({
-  get: () => props.modelValue,
-  set: (value) => emit('update:modelValue', value || ''),
-});
-</script>

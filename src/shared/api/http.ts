@@ -1,10 +1,11 @@
-import axios from 'axios'
+import axios from "axios";
 
 export const http = axios.create({
-  baseURL: import.meta.env.VITE_API_URL ?? '/',
+  baseURL: import.meta.env.VITE_API_BASE,
   timeout: 15000,
-  headers: { 'Content-Type': 'application/json' },
-})
+  headers: { "Content-Type": "application/json" },
+  withCredentials: true
+});
 
 http.interceptors.response.use(
   (res) => res,
@@ -12,10 +13,8 @@ http.interceptors.response.use(
     Promise.reject(
       err?.response?.data ?? {
         success: false,
-        message: 'Network error',
+        message: "Network error",
         status: 0,
       }
     )
-)
-
-
+);

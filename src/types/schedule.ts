@@ -1,10 +1,17 @@
 // Types for schedule data structure
 
+import type {
+  Building,
+  ClassRoom,
+  Discipline,
+  Teacher,
+} from "@/shared/api/types";
+
 export interface ClassData {
-  subject: string;
-  teacher: string;
-  room: string;
-  building: string;
+  subject: Discipline | null;
+  teacher: Teacher | null;
+  room: ClassRoom | null;
+  building: Building | null;
 }
 
 export interface TimeSlot {
@@ -27,6 +34,5 @@ export interface RoomColors {
   [key: string]: string;
 }
 
-export type WeekType = 'upperWeek' | 'lowerWeek';
-export type WeekTypeShort = 'upper' | 'lower';
-
+export type WeekType = "upperWeek" | "lowerWeek";
+export type WeekTypeShort = "upper" | "lower";
