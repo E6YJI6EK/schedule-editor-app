@@ -81,15 +81,11 @@ const removeGroup = (groupId: number) => {
   emit("update:modelValue", selectedGroups.value);
 };
 
-const displayValue = computed(() => {
-  if (selectedGroups.value.length === 0) {
-    return "";
-  }
-  if (selectedGroups.value.length === 1) {
-    return selectedGroups.value[0].name;
-  }
-  return `${selectedGroups.value.length} групп выбрано`;
-});
+const handleBlur = () => {
+  window.setTimeout(() => {
+    isOpen.value = false;
+  }, 200);
+};
 </script>
 
 <template>
@@ -122,7 +118,7 @@ const displayValue = computed(() => {
         placeholder="Введите название группы для поиска"
         class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
         @focus="isOpen = true"
-        @blur="setTimeout(() => { isOpen = false }, 200)"
+        @blur="handleBlur"
       />
       
       <!-- Выпадающий список -->

@@ -26,7 +26,7 @@ const handleShowSchedule = async () => {
   
   showSchedule.value = true;
   const groupIds = selectedGroups.value.map(g => g.id);
-  await scheduleStore.loadBothWeeks(groupIds);
+  await scheduleStore.loadBothWeeks(groupIds, selectedGroups.value);
 };
 </script>
 <template>
@@ -65,7 +65,7 @@ const handleShowSchedule = async () => {
       </div>
 
       <!-- Таблица расписания -->
-      <div v-if="showSchedule && !isLoading && !error">
+      <div v-if="showSchedule && !isLoading">
         <div class="mb-4 flex items-center justify-between">
           <h2 class="text-xl font-semibold">Расписание</h2>
           <Button

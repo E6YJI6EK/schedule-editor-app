@@ -3,6 +3,8 @@ import { mockSchedule } from '@/utils/mockData';
 import type { Schedule, WeekType, WeekTypeShort, ClassData } from '@/types/schedule';
 import { getSchedule } from '@/shared/api/lessons';
 import { transformLessonsToWeekSchedule, getGroupsFromLessons } from '@/utils/scheduleTransform';
+import { createEmptySchedule } from '@/utils/createEmptySchedule';
+import type { Group } from '@/shared/api/types';
 
 interface ScheduleState {
   schedule: Schedule;
@@ -76,7 +78,7 @@ export const useScheduleStore = defineStore('schedule', {
     getWeekData(weekType: WeekType) {
       return this.schedule[weekType];
     },
-    async loadSchedule(groupIds: number[], isUpperWeek: boolean) {
+    async loadSchedule(groupIds: number[], isUpperWeek: boolean, groups: Group[]) {
       this.loading = true;
       this.error = null;
       try {
@@ -96,24 +98,48 @@ export const useScheduleStore = defineStore('schedule', {
             this.schedule.lowerWeek = weekSchedule;
           }
           
-          // Обновляем список групп, если они изменились
-          const groups = getGroupsFromLessons(response.data, groupIds);
-          if (groups.length > 0) {
-            this.schedule.groups = groups;
+          // Обновляем список групп
+          const groupNames = getGroupsFromLessons(response.data, groupIds);
+          if (groupNames.length > 0) {
+            this.schedule.groups = groupNames;
           }
         }
       } catch (error: any) {
-        this.error = error?.message || 'Ошибка при загрузке расписания';
-        console.error('Error loading schedule:', error);
+        // Если ошибка 404 (расписание не найдено), создаем пустое расписание
+        if (error?.status === 404 || error?.response?.status === 404) {
+          // Создаем пустое расписание для этой недели
+          const emptySchedule = createEmptySchedule(groups);
+          if (isUpperWeek) {
+            this.schedule.upperWeek = emptySchedule.upperWeek;
+          } else {
+            this.schedule.lowerWeek = emptySchedule.lowerWeek;
+          }
+          this.schedule.groups = emptySchedule.groups;
+          this.error = null; // Не показываем ошибку, если это просто пустое расписание
+        } else {
+          this.error = error?.message || 'Ошибка при загрузке расписания';
+          console.error('Error loading schedule:', error);
+        }
       } finally {
         this.loading = false;
       }
     },
-    async loadBothWeeks(groupIds: number[]) {
-      // Загружаем обе недели параллельно
+    async loadBothWeeks(groupIds: number[], groups: Group[]) {
+      // Если групп нет, создаем пустое расписание
+      if (groups.length === 0) {
+        return;
+      }
+
+      // Сначала создаем пустую структуру расписания
+      const emptySchedule = createEmptySchedule(groups);
+      this.schedule.groups = emptySchedule.groups;
+      this.schedule.upperWeek = emptySchedule.upperWeek;
+      this.schedule.lowerWeek = emptySchedule.lowerWeek;
+
+      // Затем загружаем данные с бэкенда (если есть)
       await Promise.all([
-        this.loadSchedule(groupIds, true),
-        this.loadSchedule(groupIds, false),
+        this.loadSchedule(groupIds, true, groups),
+        this.loadSchedule(groupIds, false, groups),
       ]);
     }
   },

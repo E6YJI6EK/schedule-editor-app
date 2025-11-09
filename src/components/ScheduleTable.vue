@@ -84,6 +84,16 @@ const scheduleStore = useScheduleStore();
 const days = ['Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота'];
 const groups = computed(() => scheduleStore.schedule.groups);
 
+// Стандартные временные слоты (если данных нет, используем их)
+const DEFAULT_TIMES = [
+  '08:30–10:00',
+  '10:10–11:40',
+  '12:00–13:30',
+  '13:40–15:10',
+  '15:20–16:50',
+  '17:00–18:30',
+]
+
 const times = computed<string[]>(() => {
   const allTimes: string[] = [];
   props.data.forEach(day => {
@@ -93,13 +103,19 @@ const times = computed<string[]>(() => {
       }
     });
   });
+  
+  // Если нет временных слотов в данных, используем стандартные
+  if (allTimes.length === 0) {
+    return DEFAULT_TIMES;
+  }
+  
   return allTimes.sort();
 });
 
 const getCellData = (day: string, time: string, groupIndex: number) => {
   const dayData = props.data.find(d => d.day === day);
   const timeSlot = dayData?.timeslots.find(t => t.time === time);
-  return timeSlot?.groups?.[groupIndex] || { subject: '', teacher: '', room: '', building: '' };
+  return timeSlot?.groups?.[groupIndex] || { subject: null, teacher: null, room: null, building: null };
 };
 
 const getCellColor = (day: string, time: string, groupIndex: number): string => {
