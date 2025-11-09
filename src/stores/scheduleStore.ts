@@ -1,16 +1,22 @@
 import { defineStore } from 'pinia';
 import { mockSchedule } from '@/utils/mockData';
 import type { Schedule, WeekType, WeekTypeShort, ClassData } from '@/types/schedule';
+import { getSchedule } from '@/shared/api/lessons';
+import { transformLessonsToWeekSchedule, getGroupsFromLessons } from '@/utils/scheduleTransform';
 
 interface ScheduleState {
   schedule: Schedule;
   currentWeek: WeekTypeShort;
+  loading: boolean;
+  error: string | null;
 }
 
 export const useScheduleStore = defineStore('schedule', {
   state: (): ScheduleState => ({
     schedule: mockSchedule,
     currentWeek: 'upper' as WeekTypeShort,
+    loading: false,
+    error: null,
   }),
   actions: {
     switchWeek(): void {
@@ -69,6 +75,46 @@ export const useScheduleStore = defineStore('schedule', {
     },
     getWeekData(weekType: WeekType) {
       return this.schedule[weekType];
+    },
+    async loadSchedule(groupIds: number[], isUpperWeek: boolean) {
+      this.loading = true;
+      this.error = null;
+      try {
+        const response = await getSchedule({
+          group_ids: groupIds,
+          is_upper_week: isUpperWeek,
+        });
+        
+        if (response.success && response.data) {
+          // Преобразуем данные из бэкенда в формат фронтенда для одной недели
+          const weekSchedule = transformLessonsToWeekSchedule(response.data, groupIds);
+          
+          // Обновляем расписание для соответствующей недели
+          if (isUpperWeek) {
+            this.schedule.upperWeek = weekSchedule;
+          } else {
+            this.schedule.lowerWeek = weekSchedule;
+          }
+          
+          // Обновляем список групп, если они изменились
+          const groups = getGroupsFromLessons(response.data, groupIds);
+          if (groups.length > 0) {
+            this.schedule.groups = groups;
+          }
+        }
+      } catch (error: any) {
+        this.error = error?.message || 'Ошибка при загрузке расписания';
+        console.error('Error loading schedule:', error);
+      } finally {
+        this.loading = false;
+      }
+    },
+    async loadBothWeeks(groupIds: number[]) {
+      // Загружаем обе недели параллельно
+      await Promise.all([
+        this.loadSchedule(groupIds, true),
+        this.loadSchedule(groupIds, false),
+      ]);
     }
   },
 });

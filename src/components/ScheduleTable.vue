@@ -68,7 +68,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import ScheduleCell from './ScheduleCell.vue';
-import { mockSchedule } from '@/utils/mockData.ts';
+import { useScheduleStore } from '@/stores/scheduleStore';
 import type { DaySchedule, RoomColors, WeekType } from '@/types/schedule';
 
 interface Props {
@@ -79,24 +79,10 @@ interface Props {
 
 const props = defineProps<Props>();
 
-// Старая версия для совместимости:
-/*const props = defineProps({
-  weekType: {
-    type: String,
-    required: true
-  },
-  data: {
-    type: Array as PropType<DaySchedule[]>,
-    required: true
-  },
-  colors: {
-    type: Object as PropType<RoomColors>,
-    required: true
-  }
-});*/
+const scheduleStore = useScheduleStore();
 
 const days = ['Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота'];
-const groups = mockSchedule.groups;
+const groups = computed(() => scheduleStore.schedule.groups);
 
 const times = computed<string[]>(() => {
   const allTimes: string[] = [];

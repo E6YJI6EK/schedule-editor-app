@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { searchGroups } from '@/shared/api/groups'
+import { searchGroupsByName } from '@/shared/api/groups'
 import type { Group, Course, EducationForm } from '@/shared/api/types'
 
 export const useGroupsStore = defineStore('groups', {
@@ -9,7 +9,7 @@ export const useGroupsStore = defineStore('groups', {
       this.loading = true
       this.error = null
       try {
-        const res = await searchGroups(params)
+        const res = await searchGroupsByName(params)
         this.items = (res as any).data ?? []
       } catch (e: any) {
         this.error = e?.message ?? 'Ошибка'
