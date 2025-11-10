@@ -4,9 +4,12 @@ import RoomSelect from "@/components/form-fields/RoomSelect.vue";
 import SubjectSelect from "@/components/form-fields/SubjectSelect.vue";
 import TeacherSelect from "@/components/form-fields/TeacherSelect.vue";
 import { useScheduleStore } from "@/stores/scheduleStore.ts";
+import { useToast } from "@/composables/useToast";
 import { reactive, ref } from "vue";
 
 import type { ClassData, WeekType } from "@/types/schedule";
+
+const toast = useToast();
 
 interface Props {
   cellData: ClassData;
@@ -116,7 +119,9 @@ const handleDragLeave = () => {
   isDragOver.value = false;
 };
 
-const handleDrop = (event: DragEvent) => {
+const isMoving = ref(false);
+
+const handleDrop = async (event: DragEvent) => {
   if (!event.dataTransfer) return;
   event.preventDefault();
   isDragOver.value = false;
@@ -134,8 +139,12 @@ const handleDrop = (event: DragEvent) => {
     ) {
       return;
     }
-    // Move the class to the new cell
-    scheduleStore.moveCell(
+    
+    // Показываем индикатор загрузки
+    isMoving.value = true;
+    
+    // Move the class to the new cell (оптимистичное обновление)
+    await scheduleStore.moveCell(
       dragData.weekType,
       dragData.day,
       dragData.time,
@@ -145,27 +154,37 @@ const handleDrop = (event: DragEvent) => {
       props.time,
       props.groupIndex
     );
-  } catch (error) {
+    
+    // Показываем успешное уведомление
+    toast.success('Пара успешно перемещена');
+  } catch (error: any) {
     console.error("Error during drop:", error);
+    // Ошибка уже обработана в store (rollback выполнен)
+    // Показываем toast уведомление об ошибке
+    toast.error(error?.message || 'Не удалось переместить пару');
+  } finally {
+    isMoving.value = false;
   }
 };
 </script>
 
 <template>
   <div
-    :draggable="!!cellData.subject"
+    :draggable="!!cellData.subject && !isMoving"
     @dragstart="handleDragStart"
     @dragend="handleDragEnd"
     @dragover.prevent="handleDragOver"
     @dragleave="handleDragLeave"
     @drop.prevent="handleDrop"
     @click="openEditDialog"
-    class="h-20 p-2 border border-gray-300 rounded-lg transition-all"
+    class="h-20 p-2 border border-gray-300 rounded-lg transition-all relative"
     :class="{
-      'cursor-move hover:shadow-md': cellData.subject,
-      'cursor-pointer hover:shadow-md': !cellData.subject,
+      'cursor-move hover:shadow-md': cellData.subject && !isMoving,
+      'cursor-pointer hover:shadow-md': !cellData.subject && !isMoving,
       'bg-blue-100 border-blue-400 border-2': isDragOver,
       'opacity-50': isDragging,
+      'cursor-wait': isMoving,
+      'animate-pulse': isMoving,
     }"
     :style="{ backgroundColor: isDragOver ? '#dbeafe' : color }"
   >
