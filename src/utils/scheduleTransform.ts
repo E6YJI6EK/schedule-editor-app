@@ -1,26 +1,26 @@
-import type { LessonWithRelations } from '@/shared/api/lessons'
-import type { Schedule, DaySchedule, ClassData } from '@/types/schedule'
-import type { Day } from '@/shared/api/types'
+import type { LessonWithRelations } from "@/shared/api/lessons";
+import type { DaySchedule, ClassData } from "@/types/schedule";
+import { Day } from "@/shared/api/types";
 
 // Маппинг дней из бэкенда в русские названия
 const dayMap: Record<Day, string> = {
-  mon: 'Понедельник',
-  tue: 'Вторник',
-  wed: 'Среда',
-  thu: 'Четверг',
-  fri: 'Пятница',
-  sat: 'Суббота',
-  sun: 'Воскресенье',
-}
+  [Day.Mon]: "Понедельник",
+  [Day.Tue]: "Вторник",
+  [Day.Wed]: "Среда",
+  [Day.Thu]: "Четверг",
+  [Day.Fri]: "Пятница",
+  [Day.Sat]: "Суббота",
+  [Day.Sun]: "Воскресенье",
+};
 
-// Форматирование времени из day_partition
-function formatTime(startTime: string, endTime: string): string {
-  // Если время уже в формате HH:mm, используем его
-  // Иначе пытаемся извлечь время из строки
-  const start = startTime.length === 5 ? startTime : startTime.substring(11, 16)
-  const end = endTime.length === 5 ? endTime : endTime.substring(11, 16)
-  return `${start}–${end}`
-}
+const DEFAULT_TIMES = [
+  "08:30–10:00",
+  "10:10–11:40",
+  "12:00–13:30",
+  "13:40–15:10",
+  "15:20–16:50",
+  "17:00–18:30",
+];
 
 /**
  * Преобразует данные уроков из бэкенда в формат расписания для одной недели
@@ -29,84 +29,90 @@ export function transformLessonsToWeekSchedule(
   lessons: LessonWithRelations[],
   groupIds: number[]
 ): DaySchedule[] {
-  // Получаем уникальные группы из уроков
-  const groupsMap = new Map<number, string>()
-  lessons.forEach(lesson => {
-    if (lesson.group && !groupsMap.has(lesson.group.id)) {
-      groupsMap.set(lesson.group.id, lesson.group.name)
-    }
-  })
-
-  // Инициализируем дни недели
-  const days: Day[] = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat']
-  const weekSchedule: DaySchedule[] = days.map(day => ({
-    day: dayMap[day],
-    timeslots: [],
-  }))
-
-  // Группируем уроки по дню и времени
-  const lessonsByDay: Record<string, Record<string, LessonWithRelations[]>> = {}
-
-  lessons.forEach(lesson => {
-    const day = lesson.time_slot.day
-    const dayPartition = lesson.time_slot.day_partition
+  // Маппинг дней для индексации (1=пн, 2=вт, 3=ср, 4=чт, 5=пт, 6=сб)
+  const dayKeys: Day[] = [Day.Mon, Day.Tue, Day.Wed, Day.Thu, Day.Fri, Day.Sat];
+  const dayNumbers = [1, 2, 3, 4, 5, 6];
+  
+  // Группируем уроки по дню и dayPartitionId
+  const lessonsByDayAndPartition = new Map<string, LessonWithRelations[]>();
+  
+  lessons.forEach((lesson) => {
+    const day = lesson.time_slot.day; // число 1-6
+    const dayPartitionId = lesson.time_slot.day_partition?.id;
     
-    if (!dayPartition) return
-
-    const time = formatTime(dayPartition.start_time, dayPartition.end_time)
-
-    if (!lessonsByDay[day]) {
-      lessonsByDay[day] = {}
+    if (!dayPartitionId) return;
+    
+    const key = `${day}-${dayPartitionId}`;
+    if (!lessonsByDayAndPartition.has(key)) {
+      lessonsByDayAndPartition.set(key, []);
     }
-    if (!lessonsByDay[day][time]) {
-      lessonsByDay[day][time] = []
-    }
+    lessonsByDayAndPartition.get(key)!.push(lesson);
+  });
 
-    lessonsByDay[day][time].push(lesson)
-  })
+  console.log("lessonsByDayAndPartition", lessonsByDayAndPartition);
 
-  // Заполняем расписание
-  days.forEach(day => {
-    const daySchedule = weekSchedule.find(d => d.day === dayMap[day])
-    if (!daySchedule) return
+  // Создаем расписание для каждого дня
+  const weekSchedule: DaySchedule[] = dayKeys.map((dayKey, index) => {
+    const dayNumber = dayNumbers[index];
+    const daySchedule: DaySchedule = {
+      day: dayMap[dayKey],
+      timeslots: [],
+    };
 
-    const dayLessons = lessonsByDay[day] || {}
-    const times = Object.keys(dayLessons).sort()
-
-    times.forEach(time => {
-      const timeLessons = dayLessons[time]
-      const classDataArray: ClassData[] = []
-
+    // Для каждого временного слота (1-6)
+    for (let dayPartitionId = 1; dayPartitionId <= 6; dayPartitionId++) {
+      const time = DEFAULT_TIMES[dayPartitionId - 1] || "";
+      const key = `${dayNumber}-${dayPartitionId}`;
+      const lessonsForSlot = lessonsByDayAndPartition.get(key) || [];
+      
       // Создаем массив данных для каждой группы
-      groupIds.forEach(groupId => {
-        const lesson = timeLessons.find(l => l.group_id === groupId)
+      const classDataArray: ClassData[] = groupIds.map((groupId) => {
+        const lesson = lessonsForSlot.find((l) => l.group?.id === groupId);
         
         if (lesson) {
-          classDataArray.push({
-            subject: lesson.discipline || null,
-            teacher: lesson.teacher || null,
-            room: lesson.class_room || null,
-            building: lesson.class_room?.building || null,
-          })
+          return {
+            subject: lesson.discipline ? {
+              id: lesson.discipline.id,
+              name: lesson.discipline.name
+            } : null,
+            teacher: lesson.teacher ? {
+              id: lesson.teacher.id,
+              name: lesson.teacher.name,
+              discipline_id: 0 // Это поле отсутствует в LessonWithRelations
+            } : null,
+            room: lesson.class_room ? {
+              id: lesson.class_room.id,
+              number: lesson.class_room.number,
+              building_id: lesson.class_room.building?.id || 0
+            } : null,
+            building: lesson.class_room?.building ? {
+              id: lesson.class_room.building.id,
+              name: lesson.class_room.building.short_name
+            } : null,
+          };
         } else {
           // Пустая ячейка для группы без урока
-          classDataArray.push({
+          return {
             subject: null,
             teacher: null,
             room: null,
             building: null,
-          })
+          };
         }
-      })
+      });
 
       daySchedule.timeslots.push({
         time,
         groups: classDataArray,
-      })
-    })
-  })
+      });
+    }
 
-  return weekSchedule
+    return daySchedule;
+  });
+
+  console.log("weekSchedule", weekSchedule);
+
+  return weekSchedule;
 }
 
 /**
@@ -116,15 +122,14 @@ export function getGroupsFromLessons(
   lessons: LessonWithRelations[],
   groupIds: number[]
 ): string[] {
-  const groupsMap = new Map<number, string>()
-  lessons.forEach(lesson => {
+  const groupsMap = new Map<number, string>();
+  lessons.forEach((lesson) => {
     if (lesson.group && !groupsMap.has(lesson.group.id)) {
-      groupsMap.set(lesson.group.id, lesson.group.name)
+      groupsMap.set(lesson.group.id, lesson.group.name);
     }
-  })
-  
-  return groupIds
-    .map(id => groupsMap.get(id))
-    .filter((name): name is string => !!name)
-}
+  });
 
+  return groupIds
+    .map((id) => groupsMap.get(id))
+    .filter((name): name is string => !!name);
+}

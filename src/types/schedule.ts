@@ -16,7 +16,7 @@ export interface ClassData {
 
 export interface TimeSlot {
   time: string;
-  groups: ClassData[];
+  groups: ClassData[] | null;
 }
 
 export interface DaySchedule {

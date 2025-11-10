@@ -1,5 +1,5 @@
 import { http } from './http'
-import type { ApiSuccess, Lesson, Teacher, ClassRoom, Building, TimeSlot, Discipline, Group } from './types'
+import type { ApiSuccess, Lesson, Teacher, ClassRoom, Building, TimeSlot, Discipline, Group, WeekType, EducationForm } from './types'
 
 export async function createLesson(payload: {
   teacher_id: number
@@ -26,20 +26,42 @@ export async function updateLesson(
   return res.data
 }
 
-export type LessonWithRelations = Lesson & {
-  teacher: Teacher
-  class_room: ClassRoom & {
-    building: Building
-  }
-  time_slot: TimeSlot & {
-    day_partition?: {
-      start_time: string
-      end_time: string
-    }
-  }
-  discipline: Discipline
-  group: Group
-}
+export type LessonWithRelations = {
+  id: number;
+  teacher: {
+    id: number;
+    name: string;
+  };
+  class_room: {
+    id: number;
+    number: string;
+    building: {
+      id: number;
+      short_name: string;
+    };
+  };
+  time_slot: {
+    id: number;
+    week_type: WeekType;
+    day: number;
+    day_partition: {
+      id: number;
+      start_time: string;
+      end_time: string;
+    };
+  };
+  discipline: {
+    id: number;
+    name: string;
+  };
+  group: {
+    id: number;
+    name: string;
+    course: number;
+    education_form: EducationForm;
+    institute_id: number;
+  };
+};
 
 export async function getSchedule(params: {
   group_ids: number[]
