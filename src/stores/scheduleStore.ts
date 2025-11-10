@@ -1,10 +1,11 @@
 import { defineStore } from 'pinia';
 import { mockSchedule } from '@/utils/mockData';
 import type { Schedule, WeekType, WeekTypeShort, ClassData } from '@/types/schedule';
-import { getSchedule } from '@/shared/api/lessons';
+import { getSchedule, createLesson, updateLesson, getTimeSlotId } from '@/shared/api/lessons';
 import { transformLessonsToWeekSchedule, getGroupsFromLessons } from '@/utils/scheduleTransform';
 import { createEmptySchedule } from '@/utils/createEmptySchedule';
 import type { Group } from '@/shared/api/types';
+import { getDayNumber, getDayPartitionId } from '@/utils/timeSlotMapping';
 
 interface ScheduleState {
   schedule: Schedule;
@@ -24,12 +25,73 @@ export const useScheduleStore = defineStore('schedule', {
     switchWeek(): void {
       this.currentWeek = this.currentWeek === 'upper' ? 'lower' : 'upper';
     },
-    updateCell(week: WeekType, day: string, time: string, groupIndex: number, newData: Partial<ClassData>): void {
+    async updateCell(week: WeekType, day: string, time: string, groupIndex: number, newData: Partial<ClassData>): Promise<void> {
       const targetWeek = this.schedule[week];
       const dayData = targetWeek.find(d => d.day === day);
       const timeSlot = dayData?.timeslots.find(t => t.time === time);
-      if (timeSlot && timeSlot.groups && timeSlot.groups[groupIndex]) {
-        Object.assign(timeSlot.groups[groupIndex], newData);
+      
+      if (!timeSlot || !timeSlot.groups || !timeSlot.groups[groupIndex]) {
+        throw new Error('Не удалось найти ячейку расписания');
+      }
+
+      const currentCell = timeSlot.groups[groupIndex];
+      const isUpperWeek = week === 'upperWeek';
+      
+      // Проверяем, есть ли все необходимые данные для сохранения
+      if (!newData.subject || !newData.teacher || !newData.room || !newData.groupId) {
+        // Если данные неполные, просто обновляем локально (возможно, пользователь очистил ячейку)
+        Object.assign(currentCell, newData);
+        return;
+      }
+
+      try {
+        // Если у урока уже есть ID, обновляем его
+        if (currentCell.lessonId) {
+          const payload = {
+            discipline_id: newData.subject.id,
+            teacher_id: newData.teacher.id,
+            class_room_id: newData.room.id,
+          };
+          
+          await updateLesson(currentCell.lessonId, payload);
+          
+          // Обновляем локальные данные после успешного обновления
+          Object.assign(currentCell, newData);
+        } else {
+          // Создаем новый урок
+          // Сначала получаем time_slot_id
+          const dayNumber = getDayNumber(day);
+          const dayPartitionId = getDayPartitionId(time);
+          const weekType = isUpperWeek ? 'upper' : 'lower';
+          
+          const timeSlotResponse = await getTimeSlotId({
+            week_type: weekType,
+            day: dayNumber,
+            day_partition_id: dayPartitionId,
+          });
+          
+          const timeSlotId = timeSlotResponse.data.id;
+          
+          const payload = {
+            discipline_id: newData.subject.id,
+            teacher_id: newData.teacher.id,
+            class_room_id: newData.room.id,
+            group_id: newData.groupId,
+            time_slot_id: timeSlotId,
+          };
+          
+          const response = await createLesson(payload);
+          
+          // Обновляем локальные данные с новым lesson_id
+          Object.assign(currentCell, {
+            ...newData,
+            lessonId: response.data.id,
+            timeSlotId: timeSlotId,
+          });
+        }
+      } catch (error: any) {
+        console.error('Ошибка при сохранении урока:', error);
+        throw new Error(error?.response?.data?.message || 'Не удалось сохранить изменения');
       }
     },
     addNewClass(week: WeekType, day: string, time: string, groupIndex: number, classData: ClassData): void {

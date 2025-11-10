@@ -1,5 +1,5 @@
 import { http } from './http'
-import type { ApiSuccess, Lesson, Teacher, ClassRoom, Building, TimeSlot, Discipline, Group, WeekType, EducationForm } from './types'
+import type { ApiSuccess, Lesson, WeekType, EducationForm } from './types'
 
 export async function createLesson(payload: {
   teacher_id: number
@@ -72,6 +72,20 @@ export async function getSchedule(params: {
   queryParams.append('is_upper_week', params.is_upper_week ? '1' : '0')
   
   const res = await http.get<ApiSuccess<LessonWithRelations[]>>(`/lessons/schedule?${queryParams.toString()}`)
+  return res.data
+}
+
+export async function getTimeSlotId(params: {
+  week_type: 'upper' | 'lower'
+  day: number
+  day_partition_id: number
+}): Promise<ApiSuccess<{ id: number }>> {
+  const queryParams = new URLSearchParams()
+  queryParams.append('week_type', params.week_type)
+  queryParams.append('day', params.day.toString())
+  queryParams.append('day_partition_id', params.day_partition_id.toString())
+  
+  const res = await http.get<ApiSuccess<{ id: number }>>(`/lessons/time-slot?${queryParams.toString()}`)
   return res.data
 }
 

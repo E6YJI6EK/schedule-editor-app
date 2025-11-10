@@ -71,6 +71,7 @@ export function transformLessonsToWeekSchedule(
         
         if (lesson) {
           return {
+            lessonId: lesson.id,
             subject: lesson.discipline ? {
               id: lesson.discipline.id,
               name: lesson.discipline.name
@@ -89,6 +90,8 @@ export function transformLessonsToWeekSchedule(
               id: lesson.class_room.building.id,
               name: lesson.class_room.building.short_name
             } : null,
+            groupId: groupId,
+            timeSlotId: lesson.time_slot.id,
           };
         } else {
           // Пустая ячейка для группы без урока
@@ -97,6 +100,8 @@ export function transformLessonsToWeekSchedule(
             teacher: null,
             room: null,
             building: null,
+            groupId: groupId,
+            timeSlotId: undefined,
           };
         }
       });

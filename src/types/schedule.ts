@@ -8,10 +8,13 @@ import type {
 } from "@/shared/api/types";
 
 export interface ClassData {
+  lessonId?: number; // ID урока для обновления (если существует)
   subject: Discipline | null;
   teacher: Teacher | null;
   room: ClassRoom | null;
   building: Building | null;
+  groupId?: number; // ID группы
+  timeSlotId?: number; // ID временного слота
 }
 
 export interface TimeSlot {

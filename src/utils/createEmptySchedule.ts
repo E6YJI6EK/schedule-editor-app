@@ -24,11 +24,12 @@ export function createEmptySchedule(groups: Group[]): Schedule {
   const createEmptyWeek = (): DaySchedule[] => {
     return DAYS.map(day => {
       const timeslots: ScheduleTimeSlot[] = DEFAULT_TIME_SLOTS.map(time => {
-        const groupsData = groupNames.map(() => ({
+        const groupsData = groups.map(group => ({
           subject: null,
           teacher: null,
           room: null,
           building: null,
+          groupId: group.id, // Добавляем groupId для возможности создания новых уроков
         }))
 
         return {
