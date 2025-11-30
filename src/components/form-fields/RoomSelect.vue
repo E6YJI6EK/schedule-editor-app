@@ -9,7 +9,6 @@ import {
   ComboboxList,
   ComboboxTrigger,
 } from "@/components/ui/combobox";
-import { rooms } from "@/data/selectOptions";
 import { searchClassRooms } from "@/shared/api/classRooms";
 import type { ClassRoom } from "@/shared/api/types";
 import { computed, ref, watch } from "vue";

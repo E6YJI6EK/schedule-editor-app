@@ -120,6 +120,6 @@ const getCellData = (day: string, time: string, groupIndex: number) => {
 
 const getCellColor = (day: string, time: string, groupIndex: number): string => {
   const cellData = getCellData(day, time, groupIndex);
-  return cellData.room ? (props.colors[cellData.room] || '#ffffff') : '#ffffff';
+  return cellData.room ? (props.colors[cellData.room.number] || '#ffffff') : '#ffffff';
 };
 </script>
