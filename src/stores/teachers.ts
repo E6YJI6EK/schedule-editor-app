@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
-import { searchTeachers } from '@/shared/api/teachers'
-import type { Teacher } from '@/shared/api/types'
+import { searchTeachers } from '@/api/teachers'
+import type { Teacher } from '@/api/types'
 
 export const useTeachersStore = defineStore('teachers', {
   state: () => ({

@@ -1,5 +1,5 @@
 import type { Schedule, DaySchedule, TimeSlot as ScheduleTimeSlot } from '@/types/schedule'
-import type { Group } from '@/shared/api/types'
+import type { Group } from '@/api/types'
 
 // Стандартные временные слоты
 const DEFAULT_TIME_SLOTS = [
@@ -51,4 +51,3 @@ export function createEmptySchedule(groups: Group[]): Schedule {
     lowerWeek: createEmptyWeek(),
   }
 }
-

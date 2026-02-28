@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
-import { searchClassRooms } from '@/shared/api/classRooms'
-import type { ClassRoom } from '@/shared/api/types'
+import { searchClassRooms } from '@/api/classRooms'
+import type { ClassRoom } from '@/api/types'
 
 export const useClassRoomsStore = defineStore('classRooms', {
   state: () => ({ items: [] as ClassRoom[], loading: false, error: null as null | string }),

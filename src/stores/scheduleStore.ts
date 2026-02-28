@@ -11,13 +11,13 @@ import {
   createLesson,
   updateLesson,
   getTimeSlotId,
-} from "@/shared/api/lessons";
+} from "@/api/lessons";
 import {
   transformLessonsToWeekSchedule,
   getGroupsFromLessons,
 } from "@/utils/scheduleTransform";
 import { createEmptySchedule } from "@/utils/createEmptySchedule";
-import type { Group } from "@/shared/api/types";
+import type { Group } from "@/api/types";
 import { getDayNumber, getDayPartitionId } from "@/utils/timeSlotMapping";
 
 interface ScheduleState {

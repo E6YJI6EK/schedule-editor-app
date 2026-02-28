@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
-import { searchGroupsByName } from '@/shared/api/groups'
-import type { Group, Course, EducationForm } from '@/shared/api/types'
+import { searchGroupsByName } from '@/api/groups'
+import type { Group, Course, EducationForm } from '@/api/types'
 
 export const useGroupsStore = defineStore('groups', {
   state: () => ({ items: [] as Group[], loading: false, error: null as null | string }),

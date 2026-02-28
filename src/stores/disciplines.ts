@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
-import { searchDisciplines } from '@/shared/api/disciplines'
-import type { Discipline } from '@/shared/api/types'
+import { searchDisciplines } from '@/api/disciplines'
+import type { Discipline } from '@/api/types'
 
 export const useDisciplinesStore = defineStore('disciplines', {
   state: () => ({ items: [] as Discipline[], loading: false, error: null as null | string }),

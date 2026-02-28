@@ -1,6 +1,6 @@
-import type { LessonWithRelations } from "@/shared/api/lessons";
+import type { LessonWithRelations } from "@/api/lessons";
 import type { DaySchedule, ClassData } from "@/types/schedule";
-import { Day } from "@/shared/api/types";
+import { Day } from "@/api/types";
 
 // Маппинг дней из бэкенда в русские названия
 const dayMap: Record<Day, string> = {

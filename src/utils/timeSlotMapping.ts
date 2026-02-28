@@ -1,4 +1,4 @@
-import { Day } from "@/shared/api/types";
+import { Day } from "@/api/types";
 
 // Маппинг русских названий дней в Day enum
 const dayNameToDayEnum: Record<string, Day> = {

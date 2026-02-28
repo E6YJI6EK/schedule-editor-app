@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
-import { createLesson, updateLesson } from '@/shared/api/lessons'
-import type { Lesson } from '@/shared/api/types'
+import { createLesson, updateLesson } from '@/api/lessons'
+import type { Lesson } from '@/api/types'
 
 export const useLessonsStore = defineStore('lessons', {
   state: () => ({

@@ -5,7 +5,7 @@ import type {
   ClassRoom,
   Discipline,
   Teacher,
-} from "@/shared/api/types";
+} from "@/api/types";
 
 export interface ClassData {
   lessonId?: number; // ID урока для обновления (если существует)

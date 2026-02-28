@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
-import { searchBuildings } from '@/shared/api/buildings'
-import type { Building } from '@/shared/api/types'
+import { searchBuildings } from '@/api/buildings'
+import type { Building } from '@/api/types'
 
 export const useBuildingsStore = defineStore('buildings', {
   state: () => ({ items: [] as Building[], loading: false, error: null as null | string }),
