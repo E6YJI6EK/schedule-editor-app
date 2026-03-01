@@ -1,5 +1,6 @@
-import { http } from './http'
-import type { ApiSuccess, Lesson, WeekType, EducationForm } from './types'
+import type { ApiSuccess } from '@/core/fetch-client/types'
+import { http } from '@/core/fetch-client/http'
+import type { Lesson, WeekType, EducationForm } from './types'
 
 export async function createLesson(payload: {
   teacher_id: number

@@ -1,5 +1,6 @@
+import type { Discipline, Teacher, Building, ClassRoom } from '@/api/types';
 import type { Schedule, RoomColors } from '@/types/schedule';
-import type { Discipline, Teacher, Building, ClassRoom } from '@/shared/api/types';
+
 
 // Helper constants for mock data
 const disciplines: Record<string, Discipline> = {

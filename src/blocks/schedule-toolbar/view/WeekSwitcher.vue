@@ -22,11 +22,12 @@
   </div>
 </template>
 
-<script setup>
-import { useScheduleStore } from '@/stores/scheduleStore.ts';
-import { storeToRefs } from 'pinia';
+<script setup lang="ts">
 
-const scheduleStore = useScheduleStore();
-const { currentWeek } = storeToRefs(scheduleStore);
-const { switchWeek } = scheduleStore;
+interface Props {
+  currentWeek: string
+  switchWeek: () => void
+}
+
+const { currentWeek, switchWeek } = defineProps<Props>();
 </script>

@@ -1,5 +1,5 @@
 import { ref, computed } from 'vue';
-import { useScheduleStore } from '@/stores/scheduleStore';
+import { useScheduleStore } from '@/screens/schedule/model/scheduleStore';
 import type { Group } from '@/api/types';
 
 export function useScheduleScreen() {

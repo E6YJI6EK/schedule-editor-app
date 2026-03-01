@@ -1,5 +1,5 @@
 import { defineStore } from "pinia";
-import { mockSchedule } from "@/utils/mockData";
+import { mockSchedule } from "@/screens/schedule/model/mockData";
 import type {
   Schedule,
   WeekType,
@@ -15,10 +15,10 @@ import {
 import {
   transformLessonsToWeekSchedule,
   getGroupsFromLessons,
-} from "@/utils/scheduleTransform";
-import { createEmptySchedule } from "@/utils/createEmptySchedule";
+} from "@/screens/schedule/model/scheduleTransform";
+import { createEmptySchedule } from "./createEmptySchedule";
 import type { Group } from "@/api/types";
-import { getDayNumber, getDayPartitionId } from "@/utils/timeSlotMapping";
+import { getDayNumber, getDayPartitionId } from "./timeSlotMapping";
 
 interface ScheduleState {
   schedule: Schedule;

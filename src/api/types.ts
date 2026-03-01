@@ -1,17 +1,3 @@
-export type ApiSuccess<T> = {
-  success: true
-  message?: string
-  data: T
-  status?: number
-}
-
-export type ApiError = {
-  success: false
-  message: string
-  status: number
-  errors?: Record<string, string[]>
-}
-
 export type Id = number
 
 export type Teacher = { id: Id; name: string; discipline_id: Id }

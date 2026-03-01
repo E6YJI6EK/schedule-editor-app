@@ -1,5 +1,6 @@
-import { http } from "./http";
-import type { ApiSuccess, Group } from "./types";
+import type { ApiSuccess } from "@/core/fetch-client/types";
+import { http } from '@/core/fetch-client/http'
+import type { Group } from "./types";
 
 export async function searchGroupsByName(params: {
   name?: string;

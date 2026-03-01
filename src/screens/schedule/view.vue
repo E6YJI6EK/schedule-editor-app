@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { Button } from "@/core/ui/button";
-import Toolbar from "@/blocks/schedule-toolbar/view.vue";
+import Toolbar from "@/blocks/schedule-toolbar/view/Toolbar.vue";
 import ScheduleTable from "@/blocks/schedule-table/view.vue";
 import GroupMultiSelect from "@/units/group-multi-select/view.vue";
-import { roomColors } from "@/utils/mockData";
+import { roomColors } from "@/screens/schedule/model/mockData";
 import { useScheduleScreen } from "./model/useScheduleScreen";
 
 const {
@@ -18,7 +18,12 @@ const {
 
 <template>
   <div class="min-h-screen bg-gray-100">
-    <Toolbar />
+    <Toolbar
+      :scheduleShown="showSchedule && !isLoading"
+      :schedule="scheduleStore.schedule"
+      :currentWeek="scheduleStore.currentWeek"
+      :switchWeek="scheduleStore.switchWeek"
+    />
 
     <div class="container mx-auto px-4 py-6 space-y-8">
       <div v-if="!showSchedule" class="bg-white rounded-lg shadow-md p-6">
@@ -70,6 +75,9 @@ const {
             )
           "
           :colors="roomColors"
+          :schedule-groups="scheduleStore.schedule.groups"
+          :update-cell="scheduleStore.updateCell"
+          :move-cell="scheduleStore.moveCell"
         />
       </div>
     </div>
