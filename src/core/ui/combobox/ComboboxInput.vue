@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { cn } from "@/lib/utils"
+import { cn } from "@/core/lib/utils"
 import { reactiveOmit } from "@vueuse/core"
 import type { ComboboxInputEmits, ComboboxInputProps } from "reka-ui"
 import { ComboboxInput, useForwardPropsEmits } from "reka-ui"
