@@ -76,6 +76,30 @@ export async function getSchedule(params: {
   return res.data
 }
 
+export async function getScheduleByTeacher(params: {
+  teacher_id: number
+  is_upper_week: boolean
+}): Promise<ApiSuccess<LessonWithRelations[]>> {
+  const queryParams = new URLSearchParams()
+  queryParams.append('teacher_id', params.teacher_id.toString())
+  queryParams.append('is_upper_week', params.is_upper_week ? '1' : '0')
+
+  const res = await http.get<ApiSuccess<LessonWithRelations[]>>(`/lessons/schedule/by-teacher?${queryParams.toString()}`)
+  return res.data
+}
+
+export async function getScheduleByClassroom(params: {
+  classroom_id: number
+  is_upper_week: boolean
+}): Promise<ApiSuccess<LessonWithRelations[]>> {
+  const queryParams = new URLSearchParams()
+  queryParams.append('classroom_id', params.classroom_id.toString())
+  queryParams.append('is_upper_week', params.is_upper_week ? '1' : '0')
+
+  const res = await http.get<ApiSuccess<LessonWithRelations[]>>(`/lessons/schedule/by-classroom?${queryParams.toString()}`)
+  return res.data
+}
+
 export async function getTimeSlotId(params: {
   week_type: 'upper' | 'lower'
   day: number

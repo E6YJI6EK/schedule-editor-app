@@ -7,3 +7,8 @@ export async function searchTeachers(params: { discipline_id: number; name?: str
   return res.data
 }
 
+export async function searchTeachersByName(params?: { name?: string }): Promise<ApiSuccess<Teacher[]>> {
+  const res = await http.get<ApiSuccess<Teacher[]>>('/teachers/search', { params })
+  return res.data
+}
+
