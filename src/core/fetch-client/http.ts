@@ -7,14 +7,26 @@ export const http = axios.create({
   withCredentials: true
 });
 
+const AUTH_SKIP_REDIRECT = ['/auth/login', '/auth/me']
+
 http.interceptors.response.use(
   (res) => res,
-  (err) =>
-    Promise.reject(
+  (err) => {
+    const url: string = err?.config?.url ?? ''
+    const is401 = err?.response?.status === 401
+    const isAuthEndpoint = AUTH_SKIP_REDIRECT.some(u => url.includes(u))
+
+    if (is401 && !isAuthEndpoint) {
+      window.location.replace('/login')
+      return new Promise(() => {})
+    }
+
+    return Promise.reject(
       err?.response?.data ?? {
         success: false,
         message: "Network error",
         status: 0,
       }
     )
+  }
 );
