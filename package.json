@@ -45,6 +45,7 @@
     "@types/file-saver": "^2.0.7",
     "@types/node": "^24.7.0",
     "@vitejs/plugin-vue": "^6.0.1",
+    "@vitest/coverage-v8": "^4.1.5",
     "@vitest/ui": "^4.0.18",
     "@vue/test-utils": "^2.4.6",
     "@vue/tsconfig": "^0.8.1",
