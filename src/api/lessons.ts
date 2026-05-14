@@ -9,7 +9,7 @@ export async function createLesson(payload: {
   discipline_id: number
   group_id: number
 }): Promise<ApiSuccess<Lesson>> {
-  const res = await http.post<ApiSuccess<Lesson>>('/lessons/create', payload)
+  const res = await http.post<ApiSuccess<Lesson>>('/lessons', payload)
   return res.data
 }
 
@@ -23,7 +23,7 @@ export async function updateLesson(
     group_id: number
   }>
 ): Promise<ApiSuccess<Lesson>> {
-  const res = await http.put<ApiSuccess<Lesson>>(`/lessons/update/${id}`, payload)
+  const res = await http.put<ApiSuccess<Lesson>>(`/lessons/${id}`, payload)
   return res.data
 }
 
