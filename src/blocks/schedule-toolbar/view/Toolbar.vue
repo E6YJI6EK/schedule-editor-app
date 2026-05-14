@@ -1,23 +1,50 @@
 <script setup lang="ts">
 import type { Schedule, WeekTypeShort } from "@/types/schedule";
 import { FileSpreadsheet, FileText } from "lucide-vue-next";
-import { exportToExcel as exportExcel } from "../model/exportExcel";
-import { exportToPDF as exportPDF } from "../model/exportPDF";
 import WeekSwitcher from "./WeekSwitcher.vue";
 import Logo from "@/units/logo/view.vue";
 import AuthInfo from "@/blocks/auth-info/view.vue";
+import { http } from "@/core/fetch-client/http";
 
 interface Props {
   schedule: Schedule;
   currentWeek: WeekTypeShort;
   scheduleShown: boolean;
+  groupIds: number[];
   switchWeek: () => void;
 }
 
-const { schedule, switchWeek } = defineProps<Props>();
+const { groupIds, switchWeek } = defineProps<Props>();
 
-const exportToExcel = () => exportExcel(schedule);
-const exportToPDF = () => exportPDF(schedule);
+function buildGroupParams(): string {
+  return groupIds.map((id) => `group_ids[]=${id}`).join("&");
+}
+
+async function downloadFile(url: string, filename: string): Promise<void> {
+  const response = await http.get(url, { responseType: "blob" });
+  const blob = new Blob([response.data as BlobPart]);
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = filename;
+  link.click();
+  URL.revokeObjectURL(link.href);
+}
+
+function exportToExcel(): void {
+  const date = new Date().toLocaleDateString("ru-RU").replace(/\./g, "_");
+  downloadFile(
+    `/lessons/schedule/export/excel?${buildGroupParams()}`,
+    `Расписание_${date}.xlsx`
+  );
+}
+
+function exportToPDF(): void {
+  const date = new Date().toLocaleDateString("ru-RU").replace(/\./g, "_");
+  downloadFile(
+    `/lessons/schedule/export/pdf?${buildGroupParams()}`,
+    `Расписание_${date}.pdf`
+  );
+}
 </script>
 
 <template>

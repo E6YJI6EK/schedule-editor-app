@@ -9,6 +9,7 @@ import { useScheduleScreen } from "./model/useScheduleScreen";
 const {
   scheduleStore,
   selectedGroups,
+  selectedGroupIds,
   showSchedule,
   isLoading,
   error,
@@ -23,6 +24,7 @@ const {
       :schedule="scheduleStore.schedule"
       :currentWeek="scheduleStore.currentWeek"
       :switchWeek="scheduleStore.switchWeek"
+      :groupIds="selectedGroupIds"
     />
 
     <div class="container mx-auto px-4 py-6 space-y-8">

@@ -20,9 +20,12 @@ export function useScheduleScreen() {
     await scheduleStore.loadBothWeeks(groupIds, selectedGroups.value);
   };
 
+  const selectedGroupIds = computed(() => selectedGroups.value.map((g) => g.id));
+
   return {
     scheduleStore,
     selectedGroups,
+    selectedGroupIds,
     showSchedule,
     isLoading,
     error,
