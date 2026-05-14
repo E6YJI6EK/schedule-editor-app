@@ -1,10 +1,11 @@
 <script setup lang="ts">
+import { computed } from "vue";
 import { Button } from "@/core/ui/button";
 import Toolbar from "@/blocks/schedule-toolbar/view/Toolbar.vue";
 import ScheduleTable from "@/blocks/schedule-table/view.vue";
 import GroupMultiSelect from "@/units/group-multi-select/view.vue";
-import { roomColors } from "@/screens/schedule/model/mockData";
 import { useScheduleScreen } from "./model/useScheduleScreen";
+import { buildRoomColors } from "./model/roomColors";
 
 const {
   scheduleStore,
@@ -15,6 +16,8 @@ const {
   error,
   handleShowSchedule,
 } = useScheduleScreen();
+
+const roomColors = computed(() => buildRoomColors(scheduleStore.schedule));
 </script>
 
 <template>

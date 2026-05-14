@@ -1,5 +1,5 @@
 import type { Discipline, Teacher, Building, ClassRoom } from '@/api/types';
-import type { Schedule, RoomColors } from '@/types/schedule';
+import type { Schedule } from '@/types/schedule';
 
 
 // Helper constants for mock data
@@ -706,11 +706,3 @@ export const mockSchedule: Schedule = {
   ]
 };
 
-export const roomColors: RoomColors = {
-  '101': '#b3e5fc',
-  '102': '#c8e6c9',
-  '201': '#fff9c4',
-  '301': '#ffe0b2',
-  '401': '#f8bbd0',
-  'Спортзал': '#e1bee7'
-};
