@@ -175,7 +175,7 @@ const handleDrop = async (event: DragEvent) => {
     </div>
   </div>
 
-  <div v-if="showEditDialog" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+  <div v-if="showEditDialog" class="fixed inset-0 bg-black/30 flex items-center justify-center z-50"
     @click="closeEditDialog">
     <div class="bg-white rounded-lg p-6 w-96 max-w-full mx-4" @click.stop>
       <h3 class="text-lg font-semibold mb-4">

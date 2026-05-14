@@ -18,7 +18,7 @@ watch(
   <router-link
     v-if="!isScheduleEditing"
     to="/schedule"
-    class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors"
+    class="px-3 py-1.5 text-sm text-white rounded-md bg-blue-600 hover:bg-blue-700 border-blue-600 transition-colors"
   >
     Редактировать расписание
   </router-link>

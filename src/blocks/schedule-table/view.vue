@@ -29,7 +29,7 @@
             </td>
             <template v-for="day in days" :key="day">
               <td v-for="(group, groupIdx) in groups" :key="`${day}-${time}-${group}`"
-                class="p-2 border-r border-gray-200"
+                class="p-2 border-r border-gray-200 max-w-[200px]"
                 :class="{ 'border-r-2 border-gray-300': groupIdx === groups.length - 1 && day !== days[days.length - 1] }">
                 <ScheduleCell :update-cell="props.updateCell" :move-cell="props.moveCell" :cell-data="getCellData(day, time, groupIdx)" :day="day" :time="time" :group="group"
                   :group-index="groupIdx" :week-type="weekType" :color="getCellColor(day, time, groupIdx)" />

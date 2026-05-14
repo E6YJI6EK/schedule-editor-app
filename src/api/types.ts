@@ -14,7 +14,8 @@ export type Group = {
   discipline_id: Id
 }
 
-export type TimeSlot = { id: Id; starts_at: string; ends_at: string; day: Day; week_type: WeekType }
+export type DayPartition = { id: Id; start_time: string; end_time: string }
+export type TimeSlot = { id: Id; day: Day; week_type: WeekType; day_partition_id: Id }
 
 export type Lesson = {
   id: Id
