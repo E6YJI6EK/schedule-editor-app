@@ -4,6 +4,8 @@ import { Pencil, X } from 'lucide-vue-next'
 import * as buildingsApi from '@/api/buildings'
 import type { Building } from '@/api/types'
 import { useToast } from '@/core/ui/toast/model/hooks/useToast'
+import { usePagination } from '@/core/lib/usePagination'
+import Pagination from '@/core/ui/pagination/Pagination.vue'
 
 const toast = useToast()
 
@@ -15,6 +17,8 @@ const deleting = ref(false)
 
 const editingId = ref<number | null>(null)
 const form = ref({ name: '' })
+
+const { page, perPage, paginatedItems, resetPage } = usePagination(buildings)
 
 const load = async () => {
   loading.value = true
@@ -68,6 +72,7 @@ const handleDelete = async (id: number) => {
     buildings.value = buildings.value.filter(b => b.id !== id)
     confirmDeleteId.value = null
     toast.success('Корпус удалён')
+    resetPage()
   } catch (err: any) {
     toast.error(err?.message || 'Ошибка удаления')
   } finally {
@@ -118,48 +123,57 @@ onMounted(load)
       Корпуса не добавлены
     </p>
 
-    <div v-else class="divide-y divide-gray-100 border border-gray-200 rounded-lg overflow-hidden">
-      <div
-        v-for="building in buildings"
-        :key="building.id"
-        class="flex items-center justify-between px-4 py-3 bg-white"
-        :class="{ 'bg-blue-50': editingId === building.id }"
-      >
-        <span class="text-sm font-medium text-gray-800">{{ building.name }}</span>
+    <template v-else>
+      <div class="divide-y divide-gray-100 border border-gray-200 rounded-lg overflow-hidden">
+        <div
+          v-for="building in paginatedItems"
+          :key="building.id"
+          class="flex items-center justify-between px-4 py-3 bg-white"
+          :class="{ 'bg-blue-50': editingId === building.id }"
+        >
+          <span class="text-sm font-medium text-gray-800">{{ building.name }}</span>
 
-        <div class="flex items-center gap-2">
-          <template v-if="confirmDeleteId === building.id">
-            <span class="text-xs text-gray-600">Удалить?</span>
-            <button
-              @click="handleDelete(building.id)"
-              :disabled="deleting"
-              class="px-3 py-1 bg-red-600 text-white text-xs rounded-md hover:bg-red-700 transition-colors disabled:opacity-50"
-            >
-              Да
-            </button>
-            <button
-              @click="confirmDeleteId = null"
-              class="px-3 py-1 bg-gray-100 text-gray-700 text-xs rounded-md hover:bg-gray-200 transition-colors"
-            >
-              Нет
-            </button>
-          </template>
-          <template v-else>
-            <button
-              @click="startEdit(building)"
-              class="px-3 py-1 bg-gray-50 text-gray-600 text-xs rounded-md hover:bg-gray-100 border border-gray-200 transition-colors flex items-center gap-1"
-            >
-              <Pencil class="w-3 h-3" /> Изменить
-            </button>
-            <button
-              @click="confirmDeleteId = building.id"
-              class="px-3 py-1 bg-red-50 text-red-600 text-xs rounded-md hover:bg-red-100 border border-red-200 transition-colors"
-            >
-              Удалить
-            </button>
-          </template>
+          <div class="flex items-center gap-2">
+            <template v-if="confirmDeleteId === building.id">
+              <span class="text-xs text-gray-600">Удалить?</span>
+              <button
+                @click="handleDelete(building.id)"
+                :disabled="deleting"
+                class="px-3 py-1 bg-red-600 text-white text-xs rounded-md hover:bg-red-700 transition-colors disabled:opacity-50"
+              >
+                Да
+              </button>
+              <button
+                @click="confirmDeleteId = null"
+                class="px-3 py-1 bg-gray-100 text-gray-700 text-xs rounded-md hover:bg-gray-200 transition-colors"
+              >
+                Нет
+              </button>
+            </template>
+            <template v-else>
+              <button
+                @click="startEdit(building)"
+                class="px-3 py-1 bg-gray-50 text-gray-600 text-xs rounded-md hover:bg-gray-100 border border-gray-200 transition-colors flex items-center gap-1"
+              >
+                <Pencil class="w-3 h-3" /> Изменить
+              </button>
+              <button
+                @click="confirmDeleteId = building.id"
+                class="px-3 py-1 bg-red-50 text-red-600 text-xs rounded-md hover:bg-red-100 border border-red-200 transition-colors"
+              >
+                Удалить
+              </button>
+            </template>
+          </div>
         </div>
       </div>
-    </div>
+
+      <Pagination
+        :page="page"
+        :total="buildings.length"
+        :per-page="perPage"
+        @update:page="page = $event"
+      />
+    </template>
   </div>
 </template>

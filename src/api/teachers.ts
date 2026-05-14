@@ -17,12 +17,12 @@ export async function searchTeachersByName(params?: { name?: string }): Promise<
   return res.data
 }
 
-export async function createTeacher(payload: { name: string; discipline_id: number }): Promise<ApiSuccess<Teacher>> {
+export async function createTeacher(payload: { name: string; discipline_ids: number[] }): Promise<ApiSuccess<Teacher>> {
   const res = await http.post<ApiSuccess<Teacher>>('/teachers', payload)
   return res.data
 }
 
-export async function updateTeacher(id: number, payload: { name: string; discipline_id: number }): Promise<ApiSuccess<Teacher>> {
+export async function updateTeacher(id: number, payload: { name: string; discipline_ids: number[] }): Promise<ApiSuccess<Teacher>> {
   const res = await http.put<ApiSuccess<Teacher>>(`/teachers/${id}`, payload)
   return res.data
 }

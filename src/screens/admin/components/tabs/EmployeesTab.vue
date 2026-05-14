@@ -3,6 +3,8 @@ import { ref, onMounted } from 'vue'
 import * as authApi from '@/api/auth'
 import type { AuthUser } from '@/api/auth'
 import { useToast } from '@/core/ui/toast/model/hooks/useToast'
+import { usePagination } from '@/core/lib/usePagination'
+import Pagination from '@/core/ui/pagination/Pagination.vue'
 
 const toast = useToast()
 
@@ -14,6 +16,8 @@ const deleting = ref(false)
 const form = ref({ name: '', email: '', password: '', password_confirmation: '' })
 const formErrors = ref<Record<string, string[]>>({})
 const registering = ref(false)
+
+const { page, perPage, paginatedItems, resetPage } = usePagination(employees)
 
 const loadEmployees = async () => {
   loadingList.value = true
@@ -53,6 +57,7 @@ const handleDelete = async (id: number) => {
     employees.value = employees.value.filter(e => e.id !== id)
     confirmDeleteId.value = null
     toast.success('Сотрудник удалён')
+    resetPage()
   } catch (err: any) {
     toast.error(err?.message || 'Ошибка удаления')
   } finally {
@@ -126,18 +131,18 @@ onMounted(loadEmployees)
       </form>
     </div>
 
-    <div>
-      <div v-if="loadingList" class="flex justify-center py-8">
-        <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-gray-900" />
-      </div>
+    <div v-if="loadingList" class="flex justify-center py-8">
+      <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-gray-900" />
+    </div>
 
-      <p v-else-if="employees.length === 0" class="text-center py-8 text-gray-400 text-sm">
-        Нет сотрудников
-      </p>
+    <p v-else-if="employees.length === 0" class="text-center py-8 text-gray-400 text-sm">
+      Нет сотрудников
+    </p>
 
-      <div v-else class="divide-y divide-gray-100 border border-gray-200 rounded-lg overflow-hidden">
+    <template v-else>
+      <div class="divide-y divide-gray-100 border border-gray-200 rounded-lg overflow-hidden">
         <div
-          v-for="employee in employees"
+          v-for="employee in paginatedItems"
           :key="employee.id"
           class="flex items-center justify-between px-4 py-3 bg-white"
         >
@@ -173,6 +178,13 @@ onMounted(loadEmployees)
           </div>
         </div>
       </div>
-    </div>
+
+      <Pagination
+        :page="page"
+        :total="employees.length"
+        :per-page="perPage"
+        @update:page="page = $event"
+      />
+    </template>
   </div>
 </template>

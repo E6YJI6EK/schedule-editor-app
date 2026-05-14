@@ -5,6 +5,8 @@ import * as classRoomsApi from '@/api/classRooms'
 import * as buildingsApi from '@/api/buildings'
 import type { ClassRoom, Building } from '@/api/types'
 import { useToast } from '@/core/ui/toast/model/hooks/useToast'
+import { usePagination } from '@/core/lib/usePagination'
+import Pagination from '@/core/ui/pagination/Pagination.vue'
 
 const toast = useToast()
 
@@ -17,6 +19,8 @@ const deleting = ref(false)
 
 const editingId = ref<number | null>(null)
 const form = ref({ number: '', building_id: '' })
+
+const { page, perPage, paginatedItems, resetPage } = usePagination(classRooms)
 
 const buildingName = (id: number) =>
   buildings.value.find(b => b.id === id)?.name ?? '—'
@@ -79,6 +83,7 @@ const handleDelete = async (id: number) => {
     classRooms.value = classRooms.value.filter(r => r.id !== id)
     confirmDeleteId.value = null
     toast.success('Аудитория удалена')
+    resetPage()
   } catch (err: any) {
     toast.error(err?.message || 'Ошибка удаления')
   } finally {
@@ -139,51 +144,60 @@ onMounted(load)
       Аудитории не добавлены
     </p>
 
-    <div v-else class="divide-y divide-gray-100 border border-gray-200 rounded-lg overflow-hidden">
-      <div
-        v-for="room in classRooms"
-        :key="room.id"
-        class="flex items-center justify-between px-4 py-3 bg-white"
-        :class="{ 'bg-blue-50': editingId === room.id }"
-      >
-        <div>
-          <p class="text-sm font-medium text-gray-800">Аудитория {{ room.number }}</p>
-          <p class="text-xs text-gray-500">{{ buildingName(room.building_id) }}</p>
-        </div>
+    <template v-else>
+      <div class="divide-y divide-gray-100 border border-gray-200 rounded-lg overflow-hidden">
+        <div
+          v-for="room in paginatedItems"
+          :key="room.id"
+          class="flex items-center justify-between px-4 py-3 bg-white"
+          :class="{ 'bg-blue-50': editingId === room.id }"
+        >
+          <div>
+            <p class="text-sm font-medium text-gray-800">Аудитория {{ room.number }}</p>
+            <p class="text-xs text-gray-500">{{ buildingName(room.building_id) }}</p>
+          </div>
 
-        <div class="flex items-center gap-2">
-          <template v-if="confirmDeleteId === room.id">
-            <span class="text-xs text-gray-600">Удалить?</span>
-            <button
-              @click="handleDelete(room.id)"
-              :disabled="deleting"
-              class="px-3 py-1 bg-red-600 text-white text-xs rounded-md hover:bg-red-700 transition-colors disabled:opacity-50"
-            >
-              Да
-            </button>
-            <button
-              @click="confirmDeleteId = null"
-              class="px-3 py-1 bg-gray-100 text-gray-700 text-xs rounded-md hover:bg-gray-200 transition-colors"
-            >
-              Нет
-            </button>
-          </template>
-          <template v-else>
-            <button
-              @click="startEdit(room)"
-              class="px-3 py-1 bg-gray-50 text-gray-600 text-xs rounded-md hover:bg-gray-100 border border-gray-200 transition-colors flex items-center gap-1"
-            >
-              <Pencil class="w-3 h-3" /> Изменить
-            </button>
-            <button
-              @click="confirmDeleteId = room.id"
-              class="px-3 py-1 bg-red-50 text-red-600 text-xs rounded-md hover:bg-red-100 border border-red-200 transition-colors"
-            >
-              Удалить
-            </button>
-          </template>
+          <div class="flex items-center gap-2">
+            <template v-if="confirmDeleteId === room.id">
+              <span class="text-xs text-gray-600">Удалить?</span>
+              <button
+                @click="handleDelete(room.id)"
+                :disabled="deleting"
+                class="px-3 py-1 bg-red-600 text-white text-xs rounded-md hover:bg-red-700 transition-colors disabled:opacity-50"
+              >
+                Да
+              </button>
+              <button
+                @click="confirmDeleteId = null"
+                class="px-3 py-1 bg-gray-100 text-gray-700 text-xs rounded-md hover:bg-gray-200 transition-colors"
+              >
+                Нет
+              </button>
+            </template>
+            <template v-else>
+              <button
+                @click="startEdit(room)"
+                class="px-3 py-1 bg-gray-50 text-gray-600 text-xs rounded-md hover:bg-gray-100 border border-gray-200 transition-colors flex items-center gap-1"
+              >
+                <Pencil class="w-3 h-3" /> Изменить
+              </button>
+              <button
+                @click="confirmDeleteId = room.id"
+                class="px-3 py-1 bg-red-50 text-red-600 text-xs rounded-md hover:bg-red-100 border border-red-200 transition-colors"
+              >
+                Удалить
+              </button>
+            </template>
+          </div>
         </div>
       </div>
-    </div>
+
+      <Pagination
+        :page="page"
+        :total="classRooms.length"
+        :per-page="perPage"
+        @update:page="page = $event"
+      />
+    </template>
   </div>
 </template>

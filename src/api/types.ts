@@ -1,6 +1,6 @@
 export type Id = number
 
-export type Teacher = { id: Id; name: string; discipline_id: Id }
+export type Teacher = { id: Id; name: string; disciplines: Discipline[] }
 export type Discipline = { id: Id; name: string }
 export type Building = { id: Id; name: string }
 export type ClassRoom = { id: Id; number: string; building_id: Id }
