@@ -1,24 +1,15 @@
 import { defineStore } from "pinia";
 import { mockSchedule } from "@/screens/schedule/model/mockData";
-import type {
-  Schedule,
-  WeekType,
-  WeekTypeShort,
-  ClassData,
-} from "@/types/schedule";
-import {
-  getSchedule,
-  createLesson,
-  updateLesson,
-  getTimeSlotId,
-} from "@/api/lessons";
+import type { Schedule, WeekType, WeekTypeShort, ClassData } from "@/types/schedule";
+import { getSchedule, createLesson, updateLesson, getTimeSlotId } from "@/api/lessons";
 import {
   transformLessonsToWeekSchedule,
   getGroupsFromLessons,
 } from "@/screens/schedule/model/scheduleTransform";
 import { createEmptySchedule } from "./createEmptySchedule";
 import type { Group } from "@/api/types";
-import { getDayNumber, getDayPartitionId } from "./timeSlotMapping";
+import { getDayNumber } from "./timeSlotMapping";
+import { useDayPartitionsStore } from "./dayPartitionsStore";
 
 interface ScheduleState {
   schedule: Schedule;
@@ -38,6 +29,7 @@ export const useScheduleStore = defineStore("schedule", {
     switchWeek(): void {
       this.currentWeek = this.currentWeek === "upper" ? "lower" : "upper";
     },
+
     async updateCell(
       week: WeekType,
       day: string,
@@ -56,36 +48,24 @@ export const useScheduleStore = defineStore("schedule", {
       const currentCell = timeSlot.groups[groupIndex];
       const isUpperWeek = week === "upperWeek";
 
-      // Проверяем, есть ли все необходимые данные для сохранения
-      if (
-        !newData.subject ||
-        !newData.teacher ||
-        !newData.room ||
-        !newData.groupId
-      ) {
-        // Если данные неполные, просто обновляем локально (возможно, пользователь очистил ячейку)
+      if (!newData.subject || !newData.teacher || !newData.room || !newData.groupId) {
         Object.assign(currentCell, newData);
         return;
       }
 
+      const dayPartitionsStore = useDayPartitionsStore();
+
       try {
-        // Если у урока уже есть ID, обновляем его
         if (currentCell.lessonId) {
-          const payload = {
+          await updateLesson(currentCell.lessonId, {
             discipline_id: newData.subject.id,
             teacher_id: newData.teacher.id,
             class_room_id: newData.room.id,
-          };
-
-          await updateLesson(currentCell.lessonId, payload);
-
-          // Обновляем локальные данные после успешного обновления
+          });
           Object.assign(currentCell, newData);
         } else {
-          // Создаем новый урок
-          // Сначала получаем time_slot_id
           const dayNumber = getDayNumber(day);
-          const dayPartitionId = getDayPartitionId(time);
+          const dayPartitionId = dayPartitionsStore.getPartitionIdByLabel(time);
           const weekType = isUpperWeek ? "upper" : "lower";
 
           const timeSlotResponse = await getTimeSlotId({
@@ -96,21 +76,18 @@ export const useScheduleStore = defineStore("schedule", {
 
           const timeSlotId = timeSlotResponse.data.id;
 
-          const payload = {
+          const response = await createLesson({
             discipline_id: newData.subject.id,
             teacher_id: newData.teacher.id,
             class_room_id: newData.room.id,
             group_id: newData.groupId,
             time_slot_id: timeSlotId,
-          };
+          });
 
-          const response = await createLesson(payload);
-
-          // Обновляем локальные данные с новым lesson_id
           Object.assign(currentCell, {
             ...newData,
             lessonId: response.data.id,
-            timeSlotId: timeSlotId,
+            timeSlotId,
           });
         }
       } catch (error: any) {
@@ -120,6 +97,7 @@ export const useScheduleStore = defineStore("schedule", {
         );
       }
     },
+
     addNewClass(
       week: WeekType,
       day: string,
@@ -134,6 +112,7 @@ export const useScheduleStore = defineStore("schedule", {
         Object.assign(timeSlot.groups[groupIndex], classData);
       }
     },
+
     async moveCell(
       fromWeek: WeekType,
       fromDay: string,
@@ -144,54 +123,39 @@ export const useScheduleStore = defineStore("schedule", {
       toTime: string,
       toGroupIndex: number
     ): Promise<void> {
-      // Get source cell data
       const fromWeekData = this.schedule[fromWeek];
       const fromDayData = fromWeekData.find((d) => d.day === fromDay);
-      const fromTimeSlot = fromDayData?.timeslots.find(
-        (t) => t.time === fromTime
-      );
+      const fromTimeSlot = fromDayData?.timeslots.find((t) => t.time === fromTime);
       const fromCell = fromTimeSlot?.groups?.[fromGroupIndex];
-
       if (!fromCell) return;
 
-      // Get target cell data
       const toWeekData = this.schedule[toWeek];
       const toDayData = toWeekData.find((d) => d.day === toDay);
       const toTimeSlot = toDayData?.timeslots.find((t) => t.time === toTime);
       const toCell = toTimeSlot?.groups?.[toGroupIndex];
-
       if (!toCell) return;
 
-      // Сохраняем оригинальные данные для возможного отката (rollback)
       const originalFromCell = { ...fromCell };
       const originalToCell = { ...toCell };
 
-      // ОПТИМИСТИЧНОЕ ОБНОВЛЕНИЕ: сначала обновляем UI
       const temp = { ...fromCell };
       Object.assign(fromCell, toCell);
       Object.assign(toCell, temp);
 
-      // Теперь отправляем запросы на бэкенд
       try {
-        const fromIsUpperWeek = fromWeek === "upperWeek";
-        const toIsUpperWeek = toWeek === "upperWeek";
+        const dayPartitionsStore = useDayPartitionsStore();
 
-        // Получаем time_slot_id для новых позиций
         const fromDayNumber = getDayNumber(fromDay);
-        const fromDayPartitionId = getDayPartitionId(fromTime);
-        const fromWeekType = toIsUpperWeek ? "upper" : "lower";
+        const fromDayPartitionId = dayPartitionsStore.getPartitionIdByLabel(fromTime);
+        const fromWeekType = toWeek === "upperWeek" ? "upper" : "lower";
 
         const toDayNumber = getDayNumber(toDay);
-        const toDayPartitionId = getDayPartitionId(toTime);
-        const toWeekType = fromIsUpperWeek ? "upper" : "lower";
+        const toDayPartitionId = dayPartitionsStore.getPartitionIdByLabel(toTime);
+        const toWeekType = fromWeek === "upperWeek" ? "upper" : "lower";
 
         const updates: Promise<any>[] = [];
-        console.log(
-          toDayNumber,
-          toDayPartitionId,
-          fromDayNumber,
-          fromDayPartitionId
-        );
+        console.log(toDayNumber, toDayPartitionId, fromDayNumber, fromDayPartitionId);
+
         const newToTimeSlotResponse = await getTimeSlotId({
           week_type: toWeekType,
           day: toDayNumber,
@@ -203,101 +167,82 @@ export const useScheduleStore = defineStore("schedule", {
           day_partition_id: fromDayPartitionId,
         });
 
-        // Обновляем урок, который был перемещен ИЗ fromCell В toCell
-        // (теперь он находится в toCell с данными originalFromCell)
         if (originalFromCell.lessonId && originalFromCell.subject) {
           updates.push(
             updateLesson(originalFromCell.lessonId, {
               time_slot_id: newToTimeSlotResponse.data.id,
             }).then(() => {
-              // Обновляем timeSlotId в локальных данных
               toCell.timeSlotId = newToTimeSlotResponse.data.id;
             })
           );
         }
 
-        // Обновляем урок, который был перемещен ИЗ toCell В fromCell
-        // (теперь он находится в fromCell с данными originalToCell)
         if (originalToCell.lessonId && originalToCell.subject) {
           updates.push(
             updateLesson(originalToCell.lessonId, {
               time_slot_id: newFromTimeSlotResponse.data.id,
             }).then(() => {
-              // Обновляем timeSlotId в локальных данных
               fromCell.timeSlotId = newFromTimeSlotResponse.data.id;
             })
           );
         }
 
-        // Ждем завершения всех обновлений
         await Promise.all(updates);
       } catch (error: any) {
         console.error("Ошибка при перемещении урока:", error);
-
-        // ROLLBACK: откатываем изменения в UI
         Object.assign(fromCell, originalFromCell);
         Object.assign(toCell, originalToCell);
-
-        // Показываем ошибку пользователю
-        this.error =
-          error?.response?.data?.message || "Не удалось переместить урок";
-
+        this.error = error?.response?.data?.message || "Не удалось переместить урок";
         throw error;
       }
     },
+
     getCurrentWeekData() {
       const weekType: WeekType =
         this.currentWeek === "upper" ? "upperWeek" : "lowerWeek";
       return this.schedule[weekType];
     },
+
     getWeekData(weekType: WeekType) {
       return this.schedule[weekType];
     },
-    async loadSchedule(
-      groupIds: number[],
-      isUpperWeek: boolean,
-      groups: Group[]
-    ) {
+
+    async loadSchedule(groupIds: number[], isUpperWeek: boolean, groups: Group[]) {
+      const dayPartitionsStore = useDayPartitionsStore();
+
       this.loading = true;
       this.error = null;
       try {
-        const response = await getSchedule({
-          group_ids: groupIds,
-          is_upper_week: isUpperWeek,
-        });
+        const response = await getSchedule({ group_ids: groupIds, is_upper_week: isUpperWeek });
 
         if (response.success && response.data) {
-          // Преобразуем данные из бэкенда в формат фронтенда для одной недели
           const weekSchedule = transformLessonsToWeekSchedule(
             response.data,
-            groupIds
+            groupIds,
+            dayPartitionsStore.partitions
           );
 
-          // Обновляем расписание для соответствующей недели
           if (isUpperWeek) {
             this.schedule.upperWeek = weekSchedule;
           } else {
             this.schedule.lowerWeek = weekSchedule;
           }
 
-          // Обновляем список групп
           const groupNames = getGroupsFromLessons(response.data, groupIds);
           if (groupNames.length > 0) {
             this.schedule.groups = groupNames;
           }
         }
       } catch (error: any) {
-        // Если ошибка 404 (расписание не найдено), создаем пустое расписание
         if (error?.status === 404 || error?.response?.status === 404) {
-          // Создаем пустое расписание для этой недели
-          const emptySchedule = createEmptySchedule(groups);
+          const emptySchedule = createEmptySchedule(groups, dayPartitionsStore.partitions);
           if (isUpperWeek) {
             this.schedule.upperWeek = emptySchedule.upperWeek;
           } else {
             this.schedule.lowerWeek = emptySchedule.lowerWeek;
           }
           this.schedule.groups = emptySchedule.groups;
-          this.error = null; // Не показываем ошибку, если это просто пустое расписание
+          this.error = null;
         } else {
           this.error = error?.message || "Ошибка при загрузке расписания";
           console.error("Error loading schedule:", error);
@@ -306,19 +251,18 @@ export const useScheduleStore = defineStore("schedule", {
         this.loading = false;
       }
     },
-    async loadBothWeeks(groupIds: number[], groups: Group[]) {
-      // Если групп нет, создаем пустое расписание
-      if (groups.length === 0) {
-        return;
-      }
 
-      // Сначала создаем пустую структуру расписания
-      const emptySchedule = createEmptySchedule(groups);
+    async loadBothWeeks(groupIds: number[], groups: Group[]) {
+      if (groups.length === 0) return;
+
+      const dayPartitionsStore = useDayPartitionsStore();
+      await dayPartitionsStore.load();
+
+      const emptySchedule = createEmptySchedule(groups, dayPartitionsStore.partitions);
       this.schedule.groups = emptySchedule.groups;
       this.schedule.upperWeek = emptySchedule.upperWeek;
       this.schedule.lowerWeek = emptySchedule.lowerWeek;
 
-      // Затем загружаем данные с бэкенда (если есть)
       await Promise.all([
         this.loadSchedule(groupIds, true, groups),
         this.loadSchedule(groupIds, false, groups),

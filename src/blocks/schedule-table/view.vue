@@ -61,15 +61,6 @@ const props = defineProps<Props>();
 const days = ['Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота'];
 const groups = computed(() => props.scheduleGroups);
 
-const DEFAULT_TIMES = [
-  '08:30–10:00',
-  '10:10–11:40',
-  '12:00–13:30',
-  '13:40–15:10',
-  '15:20–16:50',
-  '17:00–18:30',
-]
-
 const times = computed<string[]>(() => {
   const allTimes: string[] = [];
   props.data.forEach(day => {
@@ -79,11 +70,6 @@ const times = computed<string[]>(() => {
       }
     });
   });
-
-  if (allTimes.length === 0) {
-    return DEFAULT_TIMES;
-  }
-
   return allTimes.sort();
 });
 
